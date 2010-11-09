@@ -6,7 +6,8 @@ WFSGUI {
 	}
 	
 	init_wfsgui {
-		postln(this.class.asString ++ " initialized");
+
+		this.makeGUI;
 	}
 	
 	makeGUI {		
