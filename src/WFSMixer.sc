@@ -2,6 +2,7 @@ WFSMixer {
 	var s;
 	var gui, channels;
 	var <numChannels, mixerGroupNum;
+
 	*new { |numChan|
 		^super.new.init_wfsmixer(numChan);
 	}

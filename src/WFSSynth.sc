@@ -2,6 +2,7 @@ WFSSynthChannel : Model {
 	classvar channelNumber=0;
 	var s;
 	var params, nodeNum, groupNum;
+
 	*new { |group|
 		channelNumber = channelNumber + 1;
 		^super.new.init_wfssynth(group);
