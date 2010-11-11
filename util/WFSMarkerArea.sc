@@ -1,28 +1,24 @@
 WFSMarkerArea : UserView {
+//	var parent, bounds;
 	var coords, currentIndex=0, indexCounter=0;
 	// backgroundColor is renaming this.background
 	var <>markerColor, <>selectionColor, <>markerSize=5;
 
 	*new { |view, dim|
-		^super.new(view, dim).init_wfsmarkerarea;
-	}
-
-	wfstest {
-		var win;
-		win = Window().front;
-		^this.new(win, win.view.bounds);
+		^super.newCopyArgs(view, dim).init_wfsmarkerarea;
 	}
 
 	init_wfsmarkerarea {
 		// the coordinates need to preserve their id number
 		// so, when removing elements, the remaining elements keep their identity
-		//		coords = Dictionary;
-		coords = Dictionary[0 -> 50 @ 50, 1 -> 25 @ 30];
+		//coords = Array();
+		coords = [50 @ 50, 25 @ 30]; // for testing
 		markerColor = Color.yellow;
 		selectionColor = Color.green;
-		this.backgroundColor = Color.black.alpha_(0.8);
+		this.background = Color.black.alpha_(0.8);
 
 		this.setDrawFunc;
+		this.refresh;
 	}
 
 	setDrawFunc {
@@ -42,13 +38,6 @@ WFSMarkerArea : UserView {
 		};
 	}
 
-	backgroundColor {
-		^this.background;
-	}
-
-	backgroundColor_ { |color|
-		this.background = color
-	}
 }
 
 WFSMarkerAreaOld {
