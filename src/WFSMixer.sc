@@ -1,7 +1,13 @@
 WFSMixer {
+	/**
+		all distances measured in inches
+	*/
 	var s;
-	var gui, channels;
-	var <numChannels, mixerGroupNum;
+	var <gui, channels;
+	var <numChannels, mixerGroupNum, <channelGroupNum;
+	var roomWidth; 				// is this necessary?
+	var <>speakerSpacing=18;	// 
+	var roomDepth;	 	 		// for the maximum delay
 
 	*new { |numChan|
 		^super.new.init_wfsmixer(numChan);
@@ -10,6 +16,7 @@ WFSMixer {
 	init_wfsmixer { |numChan|
 		s = Server.default;
 		mixerGroupNum = s.nextNodeID;
+		channelGroupNum = s.nextNodeID;
 		numChannels = numChan ? 8;
 
 		WFSSynthChannel.loadSynthDef;
@@ -35,8 +42,10 @@ WFSMixer {
 	}
 
 	fillChannels {
+		var speakerLocation;
 		channels = Array.fill(numChannels, { |ind|
-			WFSSynthChannel(gui);
+			speakerLocation = ind * speakerSpacing;
+			WFSSynthChannel(this, speakerLocation);
 		});
 	}
 }
