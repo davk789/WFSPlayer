@@ -7,12 +7,8 @@ WFSSynthChannel : Model {
 	var soundSpeed;
 
 	*new { |par, loc|
-		this.initStaticVariables;
-		^super.new.init_wfssynth(par, loc);
-	}
-	
-	*initStaticVariables {
 		channelNumber = channelNumber + 1;
+		^super.new.init_wfssynth(par, loc);
 	}
 	
 	init_wfssynth { |par, offset|
@@ -48,7 +44,7 @@ WFSSynthChannel : Model {
 
 	calculateDelay {
 		var distance, xDistance, delay;
-		xDistance = abs(x - speakerOffset);
+		xDistance = abs(x - speakerLocation);
 		distance = sqrt(xDistance.pow(2) + y.pow(2));
 		delay = distance / soundSpeed;
 		
