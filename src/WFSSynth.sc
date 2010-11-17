@@ -3,7 +3,7 @@ WFSSynthChannel : Model {
 	var s;
 	var params, nodeNum, groupNum;
 	var gui, parent;
-	var speakerLocation, <>x, <>y;
+	var speakerLocation, <x, <y;
 	var soundSpeed;
 
 	*new { |par, loc|
@@ -45,10 +45,20 @@ WFSSynthChannel : Model {
 			postln("Key not found. Ignoring the input.");
 		};
 	}
+	
+	x_ { |val|
+		x = val;
+		this.setDelay;
+	}
+	
+	y_ { |val|
+		y = val;
+		this.setDelay;
+	}
 
-	calculateDelay {
+	setDelay {
 		var distance, xDistance, delay;
-		xDistance = abs(x - speakerOffset);
+		xDistance = abs(x - speakerLocation);
 		distance = sqrt(xDistance.pow(2) + y.pow(2));
 		delay = distance / soundSpeed;
 		
