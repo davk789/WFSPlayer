@@ -1,11 +1,10 @@
-WFSMarkerArea : UserView {
-//	var parent, bounds;
+WFSMarkerArea : JSCUserView {
 	var coords, currentIndex=0, indexCounter=0;
 	// backgroundColor is renaming this.background
 	var <>markerColor, <>selectionColor, <>markerSize=5;
 
 	*new { |view, dim|
-		^super.newCopyArgs(view, dim).init_wfsmarkerarea;
+		^super.new(view, dim).init_wfsmarkerarea;
 	}
 
 	init_wfsmarkerarea {
@@ -18,19 +17,17 @@ WFSMarkerArea : UserView {
 		this.background = Color.black.alpha_(0.8);
 
 		this.setDrawFunc;
-		this.refresh;
 	}
 
 	setDrawFunc {
 		this.drawFunc = {
 			Pen.use{
-				coords.keysValuesDo{ |id, coord, ind|
-					if(id == currentIndex){ 
-						Pen.color = selectionColor
+				coords.do{ |coord, ind|
+					if(ind == currentIndex){ 
+						Pen.color = selectionColor;
 					}{
 						Pen.color = markerColor;
 					};
-					
 					Pen.addArc(coord, markerSize, 2pi);
 					Pen.fill;
 				};

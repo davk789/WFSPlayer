@@ -7,12 +7,8 @@ WFSSynthChannel : Model {
 	var soundSpeed;
 
 	*new { |par, loc|
-		this.initStaticVariables;
-		^super.new.init_wfssynth(par, loc);
-	}
-	
-	*initStaticVariables {
 		channelNumber = channelNumber + 1;
+		^super.new.init_wfssynth(par, loc);
 	}
 	
 	init_wfssynth { |par, offset|
