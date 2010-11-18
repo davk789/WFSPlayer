@@ -4,7 +4,7 @@ WFSSynthChannel : Model {
 	var params, nodeNum, groupNum;
 	var gui, parent;
 	var speakerLocation, <x, <y;
-	var soundSpeed;
+	var <>airTemperature=72;
 
 	*new { |par, loc|
 		channelNumber = channelNumber + 1;
@@ -26,7 +26,6 @@ WFSSynthChannel : Model {
 			'lev'        -> 1,
 			'i_maxDelay' -> 1,
 		];
-		soundSpeed = 13397.2441; // inches per second
 
 		// init functions
 		this.start;
@@ -51,12 +50,22 @@ WFSSynthChannel : Model {
 		y = val;
 		this.setDelay;
 	}
+	
+	getCelsiusTemperature { |temp|
+		^(temp - 32) / 1.8;
+	}
+	
+	getSoundSpeed {
+		var mpsSpeed;
+		mpsSpeed = 331.4 + (0.6 * this.getCelsiusTemperature); // meters per second
+		^mpsSpeed * 39.3700787; // inches per second
+	} // i need to check this math
 
 	setDelay {
 		var distance, xDistance, delay;
 		xDistance = abs(x - speakerLocation);
 		distance = sqrt(xDistance.pow(2) + y.pow(2));
-		delay = distance / soundSpeed;
+		delay = distance / this.getSoundSpeed;
 		
 		this.setParam('delayTime', delay);			
 	}
