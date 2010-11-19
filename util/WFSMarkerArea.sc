@@ -10,13 +10,19 @@ WFSMarkerArea : JSCUserView {
 	init_wfsmarkerarea {
 		// the coordinates need to preserve their id number
 		// so, when removing elements, the remaining elements keep their identity
-		//coords = Array();
-		coords = [50 @ 50, 25 @ 30]; // for testing
+		coords = Array();
 		markerColor = Color.yellow;
 		selectionColor = Color.green;
 		this.background = Color.black.alpha_(0.8);
 
+		this.initActions;
 		this.setDrawFunc;
+	}
+
+	initActions {
+		this.mouseDownAction = { |obj,x,y,mod| };
+		this.mouseUpAction = { |obj,x,y,mod| };
+		this.mouseMoveAction = { |obj,x,y,mod| };
 	}
 
 	setDrawFunc {
@@ -28,11 +34,63 @@ WFSMarkerArea : JSCUserView {
 					}{
 						Pen.color = markerColor;
 					};
-					Pen.addArc(coord, markerSize, 2pi);
+					Pen.addArc(coord, markerSize, 0, 2pi);
 					Pen.fill;
 				};
 			};
 		};
+	}
+
+	mouseDownAction_ { |func|
+		super.mouseDownAction = { |obj,x,y,mod|
+			this.handleAddEvent(x @ y, mod);
+			func.value(obj,x,y,mod);
+		};
+	}
+
+	mouseUpAction_ { |func| // no need to subclass this yet
+		super.mouseUpAction = { |obj,x,y,mod|
+			this.handleRemoveEvent(x @ y, mod);
+			func.value(obj,x,y,mod);
+		};
+	}
+
+	mouseMoveAction_ { |func|
+		super.mouseMoveAction = { |obj,x,y,mod|
+			this.moveMarker(x @ y, mod);
+			func.value(obj,x,y,mod);
+		};
+	}
+
+	handleAddEvent { |coord, mod|
+		// check the add conditions, more to come
+		if(mod != 131072){ // shift key
+			this.addMarker(coord);
+		};
+	}
+
+	handleRemoveEvent { |coord, mod|
+		if(mod == 131072){
+			this.removeMarker(coord);
+		};
+	}
+
+	removeMarker { |loc|
+		postln("removing coordinate");
+		coords.do{ |obj,ind|
+			obj.postln;
+		}
+	}
+
+	addMarker { |coord|
+		// going to need collision detection maybe
+		coords = coords.add(coord);
+		currentIndex = coords.lastIndex;
+		this.refresh;
+	}
+
+	moveMarker { |loc,mod|
+		// need some collision detection asap
 	}
 
 }
