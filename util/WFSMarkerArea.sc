@@ -15,27 +15,28 @@ WFSMarkerArea : JSCUserView {
 		selectionColor = Color.green;
 		this.background = Color.black.alpha_(0.8);
 
-		this.initActions;
-		this.setDrawFunc;
-	}
+		this.mouseDownAction = {};
+		this.mouseUpAction = {};
+		this.mouseMoveAction = {};
 
-	initActions {
-		this.mouseDownAction = { |obj,x,y,mod| };
-		this.mouseUpAction = { |obj,x,y,mod| };
-		this.mouseMoveAction = { |obj,x,y,mod| };
+		this.setDrawFunc;
 	}
 
 	setDrawFunc {
 		this.drawFunc = {
 			Pen.use{
 				coords.do{ |coord, ind|
+					
 					if(ind == currentIndex){ 
 						Pen.color = selectionColor;
 					}{
 						Pen.color = markerColor;
 					};
-					Pen.addArc(coord, markerSize, 0, 2pi);
-					Pen.fill;
+					
+					if(coord.notNil){
+						Pen.addArc(coord, markerSize, 0, 2pi);
+						Pen.fill;
+					};
 				};
 			};
 		};
@@ -76,10 +77,18 @@ WFSMarkerArea : JSCUserView {
 	}
 
 	removeMarker { |loc|
-		postln("removing coordinate");
-		coords.do{ |obj,ind|
-			obj.postln;
-		}
+		coords.do{ |obj,ind|			
+			if(obj.notNil){
+				var diff;
+
+				diff = (loc - obj).abs;
+				if((diff.x < markerSize) && (diff.y < markerSize)){
+					coords[ind] = nil;
+				};
+			};
+		};
+		this.refresh;
+		coords.postln;
 	}
 
 	addMarker { |coord|
