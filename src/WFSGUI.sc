@@ -29,35 +29,35 @@ WFSGUI {
 			.string_("number of speakers")
 			.stringColor_(Color.white);
 		
-		NumberBox(initRow, Rect(0, 0, 0, 20))
+		WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
 			.value_(16);
 		
 		StaticText(initRow, Rect(0, 0, 0, 20))
 			.string_("spacing (inches)")
 			.stringColor_(Color.white);
 			
-		NumberBox(initRow, Rect(0, 0, 0, 20))
+		WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
 			.value_(18);
 		
 		StaticText(initRow, Rect(0, 0, 0, 20))
 			.string_("air temp. (farenheit)")
 			.stringColor_(Color.white);
 		
-		NumberBox(initRow, Rect(0, 0, 0, 20))
+		WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
 			.value_(75);
 			
 		StaticText(initRow, Rect(0, 0, 0, 20))
 			.string_("room width (feet)")
 			.stringColor_(Color.white);
 			
-		NumberBox(initRow, Rect(0, 0, 0, 20))
+		WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
 			.value_(20);
 		
 		StaticText(initRow, Rect(0, 0, 0, 20))
 			.string_("room depth (feet)")
 			.stringColor_(Color.white);
 		
-		NumberBox(initRow, Rect(0, 0, 0, 20))
+		WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
 			.value_(100);
 		
 		// global control row
@@ -89,7 +89,7 @@ WFSGUI {
 			.string_("master volume (dB)")
 			.stringColor_(Color.white);
 		
-		NumberBox(globalRow, Rect(0, 0, 0, 20))
+		WFSScrollingNumberBox(globalRow, Rect(0, 0, 0, 20))
 			.value_(-6);
 		
 		StaticText(globalRow, Rect(0, 0, 0, 20))
@@ -107,7 +107,7 @@ WFSGUI {
 		
 		// marker area
 		
-		MarkerArea(win, Rect(0, 0, 475, 475));
+		WFSMarkerArea(win, Rect(0, 0, 475, 475));
 		
 		// channel controls
 		
@@ -155,20 +155,20 @@ WFSGUI {
 			.string_("volume (dB)")
 			.stringColor_(Color.white);
 	
-		NumberBox(channelRow, Rect(0, 0, 0, 20))
+		WFSScrollingNumberBox(channelRow, Rect(0, 0, 0, 20))
 			.value_(-6);
 			
 		StaticText(channelRow, Rect(0, 0, 0, 20))
 			.string_("x-position (0..1)")
 			.stringColor_(Color.white);
 		
-		NumberBox(channelRow, Rect(0, 0, 0, 20))
+		WFSScrollingNumberBox(channelRow, Rect(0, 0, 0, 20))
 			.value_(0.2);
 		StaticText(channelRow, Rect(0, 0, 0, 20))
 			.string_("y-position (0..1)")
 			.stringColor_(Color.white);
 		
-		NumberBox(channelRow, Rect(0, 0, 0, 20))
+		WFSScrollingNumberBox(channelRow, Rect(0, 0, 0, 20))
 			.value_(0.7);
 			
 		Button(channelRow, Rect(0, 0, 0, 20))

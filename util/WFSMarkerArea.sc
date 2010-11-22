@@ -1,9 +1,9 @@
 WFSMarkerArea : JSCUserView {
 	var <coords, currentIndex=0, indexCounter=0;
 	// backgroundColor is renaming this.background
-	var <>markerColor, <>selectionColor, <>markerSize=5;
-	var <>maxNumPoints=256;
-	var canMove=false, isMoving=false;
+	var <markerColor, <selectionColor, <>markerSize=5;
+	var <>maxNumPoints=128; // mouse down may lag with too many points
+	var canMove=false;
 
 	*new { |view, dim|
 		^super.new(view, dim).init_wfsmarkerarea;
@@ -16,8 +16,7 @@ WFSMarkerArea : JSCUserView {
 	}
 
 	init_wfsmarkerarea {
-		// the coordinates need to preserve their id number
-		// so, when removing elements, the value at the index is set to nil,
+		// when removing elements, the value at the index is set to nil,
 		// rather than removing the value from the array outright
 		// so be sure to check for nil
 		coords = Array();
@@ -73,52 +72,43 @@ WFSMarkerArea : JSCUserView {
 		};
 	}
 
-	countPoints {
-		var ret=0;
-		coords.do{ |obj,ind| 
-			if(obj.notNil){
-				ret = ret + 1;
-			};
-		};
-		
-		^ret;
-	}
-
 	handleMouseDown { |coord, mod|
 		// check the add conditions, more to come
-		// check for a maximum number of points?
-		var numPoints = this.countPoints;
-		var collisionPoint = this.getCollisionPoint(coord);
+		var pointsNotFull, collisionPoint, numPoints;
+						
+		if(mod != 131072){
+			pointsNotFull = true;
+			collisionPoint = this.getCollisionPoint(coord);
 
-		if(collisionPoint.notNil){
-			currentIndex = collisionPoint;
-		};
-
-		if((mod != 131072) && (numPoints < maxNumPoints)){
-			this.addMarker(coord);
+			if(collisionPoint.isNil){
+				numPoints = this.countPoints;
+				pointsNotFull = numPoints < maxNumPoints;
+				
+				if(pointsNotFull){
+					this.addMarker(coord);
+				};
+			}{
+				currentIndex = collisionPoint;
+			};
+	
+			canMove = pointsNotFull;
+			
 			this.refresh;
+
+		}{
+			canMove = false;
 		};
 	}
 
 	handleMouseUp { |coord, mod|
 		var collisionPoint = this.getCollisionPoint(coord);
-		isMoving = false;
 		
 		if((mod == 131072) && collisionPoint.notNil){
 			this.removeMarker(collisionPoint);
-		};			
+		};
 	}
 
 	handleMouseMove { |coord, mod|
-
-		if(isMoving.not && canMove){
-			var collisionPoint = this.getCollisionPoint(coord);
-			canMove = collisionPoint.notNil;
-			isMoving = true;
-		};
-
-		isMoving = true;
-
 		if((mod != 131072) && canMove){
 			this.moveMarker(coord);
 		}
@@ -131,6 +121,7 @@ WFSMarkerArea : JSCUserView {
 
 	addMarker { |coord|
 		coords = coords.add(coord);
+		currentIndex = coords.lastIndex;
 		this.refresh;
 	}
 
@@ -138,11 +129,22 @@ WFSMarkerArea : JSCUserView {
 		coords[currentIndex] = coord;
 		this.refresh;
 	}
+	
+	countPoints {
+		var ret=0;
+		coords.do{ |obj,ind| 
+			if(obj.notNil){
+				ret = ret + 1;
+			};
+		};
+		
+		^ret;
+	}
 
 	getCollisionPoint { |coord|
+		var diff;
 		coords.do{ |obj,ind|
 			if(obj.notNil){
-				var diff;
 				diff = abs(obj - coord);
 				if((diff.x < markerSize) && (diff.y < markerSize)){
 					^ind;	
@@ -157,5 +159,14 @@ WFSMarkerArea : JSCUserView {
 		coords = newCoords;
 		this.refresh;
 	}
-
+	
+	markerColor_ { |color|
+		markerColor = color;
+		this.refresh;
+	}
+	
+	selectionColor_ { |color|
+		selectionColor = color;
+		this.refresh;
+	}
 }
