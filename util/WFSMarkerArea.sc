@@ -1,15 +1,25 @@
 WFSMarkerArea : JSCUserView {
-	var coords, currentIndex=0, indexCounter=0;
+	var <coords, currentIndex=0, indexCounter=0;
 	// backgroundColor is renaming this.background
 	var <>markerColor, <>selectionColor, <>markerSize=5;
+	var <>maxNumPoints=256;
+	var canMove=false, isMoving=false;
 
 	*new { |view, dim|
 		^super.new(view, dim).init_wfsmarkerarea;
 	}
 
+	*test {
+		var win;
+		win = Window().front;
+		^super.new(win, win.view.bounds).init_wfsmarkerarea;
+	}
+
 	init_wfsmarkerarea {
 		// the coordinates need to preserve their id number
-		// so, when removing elements, the remaining elements keep their identity
+		// so, when removing elements, the value at the index is set to nil,
+		// rather than removing the value from the array outright
+		// so be sure to check for nil
 		coords = Array();
 		markerColor = Color.yellow;
 		selectionColor = Color.green;
@@ -44,204 +54,108 @@ WFSMarkerArea : JSCUserView {
 
 	mouseDownAction_ { |func|
 		super.mouseDownAction = { |obj,x,y,mod|
-			this.handleAddEvent(x @ y, mod);
+			this.handleMouseDown(x @ y, mod);
 			func.value(obj,x,y,mod);
 		};
 	}
 
 	mouseUpAction_ { |func| // no need to subclass this yet
 		super.mouseUpAction = { |obj,x,y,mod|
-			this.handleRemoveEvent(x @ y, mod);
+			this.handleMouseUp(x @ y, mod);
 			func.value(obj,x,y,mod);
 		};
 	}
 
 	mouseMoveAction_ { |func|
 		super.mouseMoveAction = { |obj,x,y,mod|
-			this.moveMarker(x @ y, mod);
+			this.handleMouseMove(x @ y, mod);
 			func.value(obj,x,y,mod);
 		};
 	}
 
-	handleAddEvent { |coord, mod|
-		// check the add conditions, more to come
-		if(mod != 131072){ // shift key
-			this.addMarker(coord);
-		};
-	}
-
-	handleRemoveEvent { |coord, mod|
-		if(mod == 131072){
-			this.removeMarker(coord);
-		};
-	}
-
-	removeMarker { |loc|
-		coords.do{ |obj,ind|			
+	countPoints {
+		var ret=0;
+		coords.do{ |obj,ind| 
 			if(obj.notNil){
-				var diff;
-
-				diff = (loc - obj).abs;
-				if((diff.x < markerSize) && (diff.y < markerSize)){
-					coords[ind] = nil;
-				};
+				ret = ret + 1;
 			};
 		};
+		
+		^ret;
+	}
+
+	handleMouseDown { |coord, mod|
+		// check the add conditions, more to come
+		// check for a maximum number of points?
+		var numPoints = this.countPoints;
+		var collisionPoint = this.getCollisionPoint(coord);
+
+		if(collisionPoint.notNil){
+			currentIndex = collisionPoint;
+		};
+
+		if((mod != 131072) && (numPoints < maxNumPoints)){
+			this.addMarker(coord);
+			this.refresh;
+		};
+	}
+
+	handleMouseUp { |coord, mod|
+		var collisionPoint = this.getCollisionPoint(coord);
+		isMoving = false;
+		
+		if((mod == 131072) && collisionPoint.notNil){
+			this.removeMarker(collisionPoint);
+		};			
+	}
+
+	handleMouseMove { |coord, mod|
+
+		if(isMoving.not && canMove){
+			var collisionPoint = this.getCollisionPoint(coord);
+			canMove = collisionPoint.notNil;
+			isMoving = true;
+		};
+
+		isMoving = true;
+
+		if((mod != 131072) && canMove){
+			this.moveMarker(coord);
+		}
+	}
+
+	removeMarker { |markerIndex|
+		coords[markerIndex] = nil;
 		this.refresh;
-		coords.postln;
 	}
 
 	addMarker { |coord|
-		// going to need collision detection maybe
 		coords = coords.add(coord);
-		currentIndex = coords.lastIndex;
 		this.refresh;
 	}
 
-	moveMarker { |loc,mod|
-		// need some collision detection asap
+	moveMarker { |coord|
+		coords[currentIndex] = coord;
+		this.refresh;
 	}
 
-}
-
-WFSMarkerAreaOld {
-	var uView, prCoords, prCurrentIndex, updateCurrentIndex=true,
-		<dimensions, markerColor, selectionColor, markerSize=5, currentMarker,
-		<>mouseDownAction, <>mouseUpAction, <>mouseMoveAction, <>maxSize=8;
-
-	*new { |view, dim|
-		^super.new.init_markerarea(view, dim);
-	}
-
-	*test {
-		var win;
-		win = GUI.window.new("asd", Rect.new(200.rand, 200.rand, 150, 150)).front;
-		^super.new.init_markerarea(win, Rect.new(0, 0, 145, 145));
-	}
-	init_markerarea { |view, dim|
-		dimensions = dim;
-		markerColor = Color.yellow;
-		selectionColor = Color.green;
-		prCoords = Array.new;
-		mouseDownAction = { |obj,x,y,mod| };
-		mouseUpAction = { |obj,x,y,mod| };
-		mouseMoveAction = { |obj,x,y,mod| };
-		uView = GUI.userView.new(view, dimensions)
-			.background_(Color.black.alpha_(0.8))
-			//.relativeOrigin_(false)
-			.mouseDownAction_({ |obj,x,y,mod| 
-				this.handleAddEvent(x @ y, mod);
-				mouseDownAction.(obj,x,y,mod);
-			})
-			.mouseMoveAction_({ |obj,x,y,mod| 
-				this.moveMarker(x @ y, mod); 
-				mouseMoveAction.(obj,x,y,mod);
-			})
-			.mouseUpAction_({ |obj,x,y,mod| 
-				mouseUpAction.(obj,x,y,mod);
-			})
-			.drawFunc_({
-				Pen.use{
-					Pen.color = markerColor;
-					prCoords.do{ |coord,ind|
-						if(ind == prCurrentIndex){ Pen.color_(selectionColor) };
-						Pen.addArc(coord, markerSize, 0, 2pi);
-						Pen.fill;
-						if(ind == prCurrentIndex){ Pen.color_(markerColor) };
-					};
+	getCollisionPoint { |coord|
+		coords.do{ |obj,ind|
+			if(obj.notNil){
+				var diff;
+				diff = abs(obj - coord);
+				if((diff.x < markerSize) && (diff.y < markerSize)){
+					^ind;	
 				};
-			});
-	}
- 	moveMarker { |coord,mod|
-		var conf, ind;
-		conf = this.getConflictPoint(coord);
-		conf.isNil.if{ 
-			ind = prCoords.lastIndex;
-		}{ 
-			ind = conf;
+			};
 		};
-		prCurrentIndex = ind;
-		postln("prCurrentIndex = " ++ prCurrentIndex);
 
-		if(this.countConflicts(coord) < 2){ 
-			prCoords.removeAt(ind);
-			this.addMarker(coord,mod); 
-		};
+		^nil;
 	}
-	addMarker { |coord,mod|
-		if(this.getConflictPoint(coord).isNil && (prCoords.size < maxSize)){
-			prCoords = prCoords.add(coord);
-		};
-		uView.refresh;
-	}
-	handleAddEvent { |coord,mod|
-		if(mod == 131072){ // shift key
-			this.removeMarker(coord);
-		}{
-			this.addMarker(coord);
-		};
-	}
-	removeMarker { |coord|
-		var rem;
-		rem = this.getConflictPoint(coord);
-		if(rem.notNil){ 
-			prCoords.removeAt(rem) 
-		};
-		uView.refresh;
-	}
-	getConflictPoint { |coord|
-		var hit=nil;
-		if(prCoords.size > 0){
-			prCoords.do{ |obj,ind|
-					this.pointCollision(coord,obj).if{ hit = ind;};
-			};
-		};
-		^hit;
-	}
-	countConflicts { |coord|
-		var num=0;
-		if(prCoords.size > 0){
-			prCoords.do{ |obj,ind|
-				this.pointCollision(coord,obj).if{ num = num + 1; };
-			};
-		};
-		^num;	
-	}
-	pointCollision { |currentCoord,prevCoord|
-		^(
-			(
-				(currentCoord.x <= (prevCoord.x + markerSize)) 
-					&& 
-				(currentCoord.y <= (prevCoord.y + markerSize))
-			) 
-			&& 
-			(
-				(currentCoord.x > (prevCoord.x - markerSize)) 
-					&& 
-				(currentCoord.y > (prevCoord.y - markerSize))
-			)
-		);
-	}
-	// getter/setter methods
-	bounds_ { |val|
-		uView.bounds = val;
-	}
-	bounds {
-		^uView.bounds;
-	}
-	coords_ { |arr|
-		prCoords = arr;
-		uView.refresh;
-	}
-	coords {
-		^prCoords;
-	}
-	currentIndex_ { |ind|
-		prCurrentIndex = ind;
-		uView.refresh;
-	}
-	currentIndex {
-		^prCurrentIndex;
+
+	coords_ { |newCoords|
+		coords = newCoords;
+		this.refresh;
 	}
 
 }
