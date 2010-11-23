@@ -7,11 +7,28 @@ WFSGUI {
 	
 	init_wfsgui {
 
-		this.makeGUI;
+		this.makeControlView;
+	}
+
+	makeMixerView {
+		// create a clobal mixer window, makeGUI style function here
+	}
+
+	addMixerChannel {
+		// add a channel to the mixer, same type of init function
+	}
+
+	removeMixerChannel {
+		// remove the channel
+	}
+
+	setActiveChannel {
+		// more work here, this updates the active channel controls and connects
+		// to the proper mixer synth channel
 	}
 	
-	makeGUI {		
-		win = Window("WFS Mixer Mockup", Rect(500.rand, 500.rand, 900, 485)).front;
+	makeControlView {		
+		win = Window("WFS Mixer", Rect(500.rand, 500.rand, 900, 485)).front;
 		win.view.decorator = FlowLayout(win.view.bounds);
 		
 		initRow = VLayoutView(win, Rect(0, 0, 120, 475))
