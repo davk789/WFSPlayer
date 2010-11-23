@@ -1,5 +1,9 @@
 WFSScrollingNumberBox : JSCNumberBox {
 	var lastCoord=0;
+	// WARNING: this class implements the same function for action and mouseMoveAction
+	var subclassAction;
+	var <>minVal, <>maxVal;
+
 	*new { |par,bnd|
 		^super.new(par,bnd).init_wfsscrollingnumberbox;
 	}
@@ -12,9 +16,7 @@ WFSScrollingNumberBox : JSCNumberBox {
 	
 	init_wfsscrollingnumberbox {
 		this.value = 0;
-		this.mouseMoveAction = {};
-		
-		postln(this.class.asString ++ " initialized");
+		this.action = {};	
 	}
 	
 /*	mouseDownAction_ { |func|
@@ -25,10 +27,31 @@ WFSScrollingNumberBox : JSCNumberBox {
 		
 	}*/
 
-	mouseMoveAction_ { |func|
+	mouseMoveAction_ {
+		error("mouseMoveAction_ is disabled in this class! Please set action_ instead.");
+	}
+
+	action_ { |func|
+		subclassAction = func;
+		super.action = { |obj,x,y,mod|
+			this.checkRange;
+			subclassAction.value(obj);
+		};
+
 		super.mouseMoveAction = { |obj,x,y,mod|
+			this.checkRange;
 			this.handleMouseMove(y, mod);
-			func.value(obj, x, y, mod);
+			subclassAction.value(obj, x, y, mod);
+		};
+	}
+
+	checkRange {
+		if(minVal.notNil){
+			if(this.value < minVal){ this.value = minVal; };
+		};
+
+		if(maxVal.notNil){
+			if(this.value > maxVal){ this.value = maxVal; };
 		};
 	}
 	
