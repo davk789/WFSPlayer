@@ -1,7 +1,7 @@
 WFSScrollingNumberBox : JSCNumberBox {
 	var lastCoord=0;
 	// WARNING: this class implements the same function for action and mouseMoveAction
-	var subclassAction;
+	var subclassAction, subclassMouseUpAction;
 	var <>minVal, <>maxVal;
 
 	*new { |par,bnd|
@@ -21,14 +21,25 @@ WFSScrollingNumberBox : JSCNumberBox {
 	
 /*	mouseDownAction_ { |func|
 		
+		}*/
+
+	mouseUpAction {
+		^subclassMouseUpAction;
 	}
 
 	mouseUpAction_ { |func|
-		
-	}*/
+		super.action = { |obj,x,y,mod|
+			this.checkRange;
+			subclassMouseUpAction.value(obj,x,y,mod);
+		};
+	}
 
 	mouseMoveAction_ {
 		error("mouseMoveAction_ is disabled in this class! Please set action_ instead.");
+	}
+
+	mouseMoveAction {
+		error("mouseMoveAction is disabled in this class! please use action instead.");
 	}
 
 	action_ { |func|

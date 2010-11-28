@@ -24,8 +24,17 @@ WFSMixer {
 	}
 
 	launchMixer {
+		// create the various subordinate parts
 		gui = WFSGUI();
 		this.fillChannels;
+	}
+
+	fillChannels {
+		var speakerLocation;
+		channels = Array.fill(numChannels, { |ind|
+			speakerLocation = ind * speakerSpacing;
+			WFSSynthChannel(this, speakerLocation);
+		});
 	}
 
 	numChannels_ { |num|
@@ -39,13 +48,5 @@ WFSMixer {
 		channels = nil;
 		
 		this.fillChannels;
-	}
-
-	fillChannels {
-		var speakerLocation;
-		channels = Array.fill(numChannels, { |ind|
-			speakerLocation = ind * speakerSpacing;
-			WFSSynthChannel(this, speakerLocation);
-		});
 	}
 }
