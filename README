@@ -1,0 +1,51 @@
+
+
+WFSMixer -- an audio mixer that implements Wavefront Synthesis to spatialize sound along
+a 2 dimensional plane. This will be able to mix external signals, along with custom 
+SynthDefs that can be loaded with this set of SuperCollider classes.
+
+
+***** notes:
+
+a big part of this work will involve translating user parameters to the raw delay times
+that will be set on each channel.
+
+
+GUI Parameters:
+'inBus' // internal mixer stuff
+'outBus' // internal mixer stuff
+'delayTime' // to be set from the parameter controls, translated from x, y
+			// and making use of the room dimensions
+'lev'		//  simple parameter setting
+'i_maxDelay' // simple parameter setting
+
+
+Synth Parameters:
+number of speakers
+spacing (inches)
+air temerature
+room temp
+room depth -- this would be the maximum delay
+master volume
+channel volume
+channel x
+channel y
+
+
+Sequencer parameters:
+global play
+global pause
+global stop
+glopba record
+global save
+global load
+global clear sequence
+global loop ?
+channel play
+channel pause
+channel stop
+channel record
+channel save
+channel load
+channel clear sequence
+channel loop sequence

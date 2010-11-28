@@ -2,6 +2,7 @@ WFSGUI {
 	var controlViewWindow, initRow, globalRow, channelRow;
 	var mixerViewWin; // this will hold the mixer view
 	var controlViewWidgets, channelControlWidgets, mixerViewWidgets;
+	var activeChannel=0;
 
 	*new {
 		^super.new.init_wfsgui;
@@ -164,7 +165,7 @@ WFSGUI {
 		channelRow = VLayoutView(controlViewWindow, Rect(0, 0, 120, 475))
 			.background_(Color.black.alpha_(0.8));
 
-		//this.loadActiveChannel; // let's not load the active channel by default
+		this.loadActiveChannel; // let's not load the active channel by default
 	
 	}
 
@@ -180,12 +181,13 @@ WFSGUI {
 			channelControlWidgets = nil;
 		};
 
-		// create and add
+		// initialoze and add the channel dict
 		channelControlWidgets = Dictionary();
+
 		// the labels need to be added to the dictionary so that they can be removed
 		channelControlWidgets = channelControlWidgets.add(
 			'lab1' -> StaticText(channelRow, Rect(0, 0, 0, 20))
-			    .string_("channel " ++ channel)
+			    .string_("channel " ++ (channelNum + 1))
 			    .stringColor_(Color.white);
 		);
 
