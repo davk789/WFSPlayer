@@ -3,16 +3,14 @@ WFSGUI {
 	var mixerViewWin; // this will hold the mixer view
 	var controlViewWidgets, channelControlWidgets, mixerViewWidgets;
 	var activeChannel=0;
+	var paramManager;
 
-	*new {
-		^super.new.init_wfsgui;
-	}
-
-	*doesNotUnderstand { |selector...args|
-		postln([selector, args]);
+	*new { |man|
+		^super.new.init_wfsgui(man);
 	}
 	
-	init_wfsgui {
+	init_wfsgui { |man|
+		paramManager = man;
 		controlViewWidgets = Dictionary();
 		mixerViewWidgets = Dictionary();
 		this.makeControlView;
@@ -181,8 +179,10 @@ WFSGUI {
 			channelControlWidgets = nil;
 		};
 
-		// initialoze and add the channel dict
+		// initialize and add the channel dict
 		channelControlWidgets = Dictionary();
+
+		// ** the controls need to get the params from the param manager
 
 		// the labels need to be added to the dictionary so that they can be removed
 		channelControlWidgets = channelControlWidgets.add(
@@ -250,7 +250,10 @@ WFSGUI {
 	
 		channelControlWidgets = channelControlWidgets.add(
 			'channelVolumeBox' -> WFSScrollingNumberBox(channelRow, Rect(0, 0, 0, 20))
-			    .value_(-6);
+			    .value_(-6)
+			    .action_({ |obj| 
+					paramManager.setSynthParam('channelVolume', activeChannel, obj.value);
+				});
 		);
 
 		channelControlWidgets = channelControlWidgets.add(
@@ -278,6 +281,11 @@ WFSGUI {
 		channelControlWidgets = channelControlWidgets.add(
 			'channelSaveButton' -> Button(channelRow, Rect(0, 0, 0, 20))
 			    .states_([["save", Color.white, Color.new255(150, 150, 255, 200)]]);
+		);
+
+		channelControlWidgets = channelControlWidgets.add(
+			'channelLoadButton' -> Button(channelRow, Rect(0, 0, 0, 20))
+			    .states_([["load", Color.white, Color.new255(150, 150, 255, 200)]]);
 		);
 	
 	}

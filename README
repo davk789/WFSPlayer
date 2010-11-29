@@ -1,5 +1,4 @@
 
-
 WFSMixer -- an audio mixer that implements Wavefront Synthesis to spatialize sound along
 a 2 dimensional plane. This will be able to mix external signals, along with custom 
 SynthDefs that can be loaded with this set of SuperCollider classes.
@@ -9,6 +8,36 @@ SynthDefs that can be loaded with this set of SuperCollider classes.
 
 a big part of this work will involve translating user parameters to the raw delay times
 that will be set on each channel.
+
+
+Global Controls:
+'presetSaveButton'
+'presetLoadButton'
+'numSpeakersBox'
+'speakerSpacingBox'
+'airTempBox'
+'roomWidthBox'
+'roomDepthBox'
+'globalPlayButton'
+'globalPauseButton'
+'globalStopButton'
+'globalRecordButton'
+'masterVolumeBox'
+'editBypassButton'
+'locationMarkerArea'
+
+Per-channel controls
+'audioSourceMenu'
+'channelPlayButton'
+'channelPauseButton'
+'channelStopButton'
+'channelRecordButton'
+'channelSequenceClearButton'
+'channelLoopButton'
+'channelVolumeBox'
+'channelXPositionBox'
+'channelYPositionBox'
+'channelSaveButton'
 
 
 GUI Parameters:
@@ -36,7 +65,7 @@ Sequencer parameters:
 global play
 global pause
 global stop
-glopba record
+glopal record
 global save
 global load
 global clear sequence

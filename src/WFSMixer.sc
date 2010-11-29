@@ -3,7 +3,7 @@ WFSMixer {
 		all distances measured in inches
 	*/
 	var s;
-	var <gui, channels, paramManager;
+	var <gui, <>channels, paramManager;
 	var <numChannels, mixerGroupNum, <channelGroupNum;
 	var roomWidth; 				// is this necessary?
 	var <>speakerSpacing=18;	// 
@@ -25,8 +25,8 @@ WFSMixer {
 
 	launchMixer {
 		// create the various subordinate parts
-		gui = WFSGUI();
 		paramManager = WFSParamManager(this);
+		gui = WFSGUI(paramManager);
 		this.fillChannels;
 	}
 

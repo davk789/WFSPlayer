@@ -1,5 +1,5 @@
 WFSParamManager { // "controller class" ... ?
-	var environment;
+	var environment, synthChannels;
 	var synthParams, interfaceParams;
 	/*
 		this class should translate between the params, and the delay times. 
@@ -12,12 +12,23 @@ WFSParamManager { // "controller class" ... ?
 
 	init_wfsparammanager { |env|
 		environment = env;
+		synthChannels = env.channels;
 		synthParams = Dictionary();
 		interfaceParams = Dictionary();
 	}
 
-	setSynthParam {
+	setSynthParam { |param...args|
+		param.switch(
+			'channelVolume', {
+				this.setChannelVolume(args[0], args[1]);
+			},
+			{ error("the caller does not match a method."); }
+		);
 		// take the coordinates and calculate a delay
+	}
+
+	setChannelVolume { |channel, val|
+		synthChannels.setParam('lev', val.ampdb);
 	}
 
 	setGUIControl {
