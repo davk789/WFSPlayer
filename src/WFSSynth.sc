@@ -13,10 +13,10 @@ WFSSynthChannel { // not inheriting from SC's built in MVC classes
 	
 	init_wfssynth { |man, offset|
 		// init vars
-		paramManager = par; // translates between the gui and the delay values
+		paramManager = man; // translates between the gui and the delay values
 		s = Server.default;
 		nodeNum = s.nextNodeID;
-		groupNum = parent.channelGroupNum;
+		//groupNum = ??
 		speakerLocation = offset;
 		params = Dictionary[
 			'inBus'      -> 20,
@@ -32,6 +32,7 @@ WFSSynthChannel { // not inheriting from SC's built in MVC classes
 	}
 	
 	setParam { |par, val|
+		postln("in wfssynth, getting this param: " ++ par ++ " and this val " ++ val);
 		if(params.includesKey(val)){
 			params[par] = val;
 			s.sendMsg('n_set', nodeNum, params[par], val);

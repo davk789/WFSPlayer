@@ -1,20 +1,26 @@
-WFSParamManager { // "controller class" ... ?
-	var environment, synthChannels;
+WFSParamManager { // "controller" class
+	var environment;
+	var synthChannels;
 	var synthParams, interfaceParams;
 	/*
 		this class should translate between the params, and the delay times. 
 		so, the delay calculations should go here, actually.
 	*/
 	
-	*new { |env|
-		^super.new.init_wfsparammanager(env);
+	*new {
+		^super.new.init_wfsparammanager;
 	}
 
-	init_wfsparammanager { |env|
-		environment = env;
-		synthChannels = env.channels;
+	init_wfsparammanager {
+		// initialize local data
 		synthParams = Dictionary();
 		interfaceParams = Dictionary();
+	}
+
+	loadEnvironment { |env|
+		// laod the environment data after everythin is in place
+		environment = env;
+		synthChannels = env.channels;
 	}
 
 	setSynthParam { |param...args|
@@ -28,7 +34,7 @@ WFSParamManager { // "controller class" ... ?
 	}
 
 	setChannelVolume { |channel, val|
-		synthChannels.setParam('lev', val.ampdb);
+		synthChannels[channel].setParam('lev', val.dbamp);
 	}
 
 	setGUIControl {

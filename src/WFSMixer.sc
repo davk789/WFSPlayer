@@ -24,17 +24,20 @@ WFSMixer {
 	}
 
 	launchMixer {
-		// create the various subordinate parts
-		paramManager = WFSParamManager(this);
+		// the param manager is the controller
+		paramManager = WFSParamManager();
+		// load the model and the view
 		gui = WFSGUI(paramManager);
 		this.fillChannels;
+		// now give the param manager the environment
+		paramManager.loadEnvironment(this);
 	}
 
 	fillChannels {
 		var speakerLocation;
 		channels = Array.fill(numChannels, { |ind|
 			speakerLocation = ind * speakerSpacing;
-			WFSSynthChannel(this, speakerLocation);
+			WFSSynthChannel(paramManager, speakerLocation);
 		});
 	}
 
