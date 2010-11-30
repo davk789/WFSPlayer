@@ -1,23 +1,22 @@
-WFSSynthChannel : Model {
+WFSSynthChannel { // not inheriting from SC's built in MVC classes
 	classvar channelNumber=0;
 	var s;
 	var params, nodeNum, groupNum;
-	var gui, parent;
+	var paramManager; // the "controller"
 	var speakerLocation, <x, <y;
 	var <>airTemperature=72;
 
-	*new { |par, loc|
+	*new { |man, loc|
 		channelNumber = channelNumber + 1;
-		^super.new.init_wfssynth(par, loc);
+		^super.new.init_wfssynth(man, loc);
 	}
 	
-	init_wfssynth { |par, offset|
+	init_wfssynth { |man, offset|
 		// init vars
-		parent = par;
+		paramManager = par; // translates between the gui and the delay values
 		s = Server.default;
 		nodeNum = s.nextNodeID;
 		groupNum = parent.channelGroupNum;
-		gui = parent.gui;
 		speakerLocation = offset;
 		params = Dictionary[
 			'inBus'      -> 20,

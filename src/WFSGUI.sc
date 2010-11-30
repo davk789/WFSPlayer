@@ -185,6 +185,7 @@ WFSGUI {
 		// ** the controls need to get the params from the param manager
 
 		// the labels need to be added to the dictionary so that they can be removed
+		// grr i wish there was a way to auto generate these controls
 		channelControlWidgets = channelControlWidgets.add(
 			'lab1' -> StaticText(channelRow, Rect(0, 0, 0, 20))
 			    .string_("channel " ++ (channelNum + 1))
