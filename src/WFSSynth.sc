@@ -1,5 +1,5 @@
 WFSSynthChannel { // not inheriting from SC's built in MVC classes
-	classvar channelNumber=0;
+	classvar channelNumber=0, <groupNumber;
 	var s;
 	var params, nodeNum, groupNum;
 	var paramManager; // the "controller"
@@ -7,6 +7,7 @@ WFSSynthChannel { // not inheriting from SC's built in MVC classes
 	var <>airTemperature=72;
 
 	*new { |man, loc|
+		groupNumber = Server.default.nextNodeID;
 		channelNumber = channelNumber + 1;
 		^super.new.init_wfssynth(man, loc);
 	}
@@ -16,21 +17,33 @@ WFSSynthChannel { // not inheriting from SC's built in MVC classes
 		paramManager = man; // translates between the gui and the delay values
 		s = Server.default;
 		nodeNum = s.nextNodeID;
-		//groupNum = ??
+		// there has to be a more elegant way to handle this
+		groupNum = this.class.groupNumber; 
 		speakerLocation = offset;
 		params = Dictionary[
 			'inBus'      -> 20,
 			'outBus'     -> 1,
 			'delayTime'  -> 0.01,
 			'lev'        -> 1,
-			'i_maxDelay' -> 1,
+			'i_maxDelay' -> 1, // this should be mutable, actually
 		];
 
 		// init functions
 		this.start;
 //		postln(this.class.asString ++ " initialized");
 	}
-	
+	/*	
+	// ?? copy-pasting code is bad. what's the best way to 
+	// set this up?
+	*setParam { |par, val|
+		if(params.includesKey(val)){
+			params[par] = val;
+			Server.default.sendMsg('n_set', groupNum, params[par], val);
+		}{
+			postln("Key not found. Ignoring the input.");
+		};		
+	}
+	*/
 	setParam { |par, val|
 		postln("in wfssynth, getting this param: " ++ par ++ " and this val " ++ val);
 		if(params.includesKey(val)){
@@ -39,8 +52,9 @@ WFSSynthChannel { // not inheriting from SC's built in MVC classes
 		}{
 			postln("Key not found. Ignoring the input.");
 		};
+
 	}
-	
+		
 	x_ { |val|
 		x = val;
 		this.setDelay;

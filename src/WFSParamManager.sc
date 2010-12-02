@@ -18,23 +18,29 @@ WFSParamManager { // "controller" class
 	}
 
 	loadEnvironment { |env|
-		// laod the environment data after everythin is in place
+		// load the environment data after everything is in place
 		environment = env;
 		synthChannels = env.channels;
 	}
 
 	setSynthParam { |param...args|
 		param.switch(
+			'masterVolume', {
+				this.setMasterVolume(args[0], args[1]);
+			},
 			'channelVolume', {
 				this.setChannelVolume(args[0], args[1]);
 			},
 			{ error("the caller does not match a method."); }
 		);
-		// take the coordinates and calculate a delay
 	}
 
 	setChannelVolume { |channel, val|
 		synthChannels[channel].setParam('lev', val.dbamp);
+	}
+
+	setMasterVolume { |val|
+		WFSSynthChannel.setParam(val.dbamp);
 	}
 
 	setGUIControl {

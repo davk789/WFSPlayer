@@ -256,7 +256,7 @@ WFSGUI {
 					paramManager.setSynthParam('channelVolume', activeChannel, obj.value);
 				});
 		);
-
+		// implement the marker area first before these
 		channelControlWidgets = channelControlWidgets.add(
 			'lab4' -> StaticText(channelRow, Rect(0, 0, 0, 20))
 			    .string_("x-position (0..1)")
