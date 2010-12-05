@@ -32,37 +32,20 @@ WFSSynthChannel { // not inheriting from SC's built in MVC classes
 		this.start;
 //		postln(this.class.asString ++ " initialized");
 	}
-	/*	
-	// ?? copy-pasting code is bad. what's the best way to 
-	// set this up?
-	*setParam { |par, val|
-		if(params.includesKey(val)){
-			params[par] = val;
-			Server.default.sendMsg('n_set', groupNum, params[par], val);
-		}{
-			postln("Key not found. Ignoring the input.");
-		};		
-	}
-	*/
-	setParam { |par, val|
-		postln("in wfssynth, getting this param: " ++ par ++ " and this val " ++ val);
-		if(params.includesKey(val)){
-			params[par] = val;
-			s.sendMsg('n_set', nodeNum, params[par], val);
-		}{
-			postln("Key not found. Ignoring the input.");
-		};
 
+	setLevel { |par, val|
+		params[par] = val;
+		s.sendMsg('n_set', nodeNum, params[par], val);
 	}
-		
+
 	x_ { |val|
 		x = val;
-		this.setDelay;
+		this.updateDelay;
 	}
 	
 	y_ { |val|
 		y = val;
-		this.setDelay;
+		this.updateDelay;
 	}
 	
 	getCelsiusTemperature { |temp|
@@ -75,7 +58,7 @@ WFSSynthChannel { // not inheriting from SC's built in MVC classes
 		^mpsSpeed * 39.3700787; // inches per second
 	} // i need to check this math
 
-	setDelay {
+	updateDelay {
 		var distance, xDistance, delay;
 		xDistance = abs(x - speakerLocation);
 		distance = sqrt(xDistance.pow(2) + y.pow(2));

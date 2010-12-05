@@ -1,6 +1,6 @@
 WFSGUI {
 	var controlViewWindow, initRow, globalRow, channelRow;
-	var mixerViewWin; // this will hold the mixer view
+	var mixerViewWin;
 	var controlViewWidgets, channelControlWidgets, mixerViewWidgets;
 	var activeChannel=0;
 	var paramManager;
@@ -265,7 +265,8 @@ WFSGUI {
 		
 		channelControlWidgets = channelControlWidgets.add(
 			'channelXPositionBox' -> WFSScrollingNumberBox(channelRow, Rect(0, 0, 0, 20))
-			    .value_(0.2);
+			    .value_(0.2)
+			    .action_({ |obj| this.setSynthParam('xPosition', activeChannel, obj.value); });
 		);
 
 		channelControlWidgets = channelControlWidgets.add(
@@ -276,7 +277,8 @@ WFSGUI {
 
 		channelControlWidgets = channelControlWidgets.add(
 			'channelYPositionBox' -> WFSScrollingNumberBox(channelRow, Rect(0, 0, 0, 20))
-			    .value_(0.2);
+			    .value_(0.2)
+			    .action_({ |obj| this.setSynthParam('yPosition', activeChannel, obj.value); });
 		);		
 		
 		channelControlWidgets = channelControlWidgets.add(
