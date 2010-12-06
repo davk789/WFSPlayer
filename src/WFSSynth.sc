@@ -1,7 +1,8 @@
 WFSSynthChannel { // not inheriting from SC's built in MVC classes
 	classvar channelNumber=0, <groupNumber;
 	var s;
-	var params, nodeNum, groupNum;
+	var <params; // temp read access, do not forget to remove later
+	var nodeNum, groupNum;
 	var paramManager; // the "controller"
 	var speakerLocation, <x, <y;
 	var <>airTemperature=72;

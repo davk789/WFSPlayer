@@ -26,20 +26,21 @@ WFSParamManager { // "controller" class
 	setSynthParam { |param...args|
 		param.switch(
 			'masterVolume', {
-				synthChannels[args[0]].setLevel(args[1].dbamp);
+				postln("i don't know what to do please help me.");
+				//				this.setChannelVolume(args[0], args[1]);				
 			},
 			'channelVolume', {
-				postln("i don't know what to do please help me.");
-				//				this.setChannelVolume(args[0], args[1]);
+				synthChannels[args[0]].setLevel(args[1].dbamp);
 			},
 			'xPosition', {
-				synthChannels[args[0]].setXPosition(args[1]);
+				synthChannels[args[0]].x = args[1];
 			},
 			'yPosition', {
-				synthChannels[args[0]].setYPosition(args[1]);
+				synthChannels[args[0]].y = args[1];
 			},
 			{ error("the caller does not match a method."); }
 		);
+		synthChannels[args[0]].params.postln;
 	}
 
 	setGUIControl {
