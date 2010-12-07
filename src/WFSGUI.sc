@@ -76,7 +76,10 @@ WFSGUI {
 
 		controlViewWidgets = controlViewWidgets.add(
 			'airTempBox' -> WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
-			    .value_(75);
+			    .value_(75)
+			    .action_({ |obj|
+					paramManager.setSynthParam('airTemperature', obj.value);
+				});
 		);
 
 		StaticText(initRow, Rect(0, 0, 0, 20))
@@ -85,7 +88,10 @@ WFSGUI {
 		
 		controlViewWidgets = controlViewWidgets.add(
 			'roomWidthBox' -> WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
-			    .value_(20);
+			    .value_(20)
+			    .action_({ |obj|
+					paramManager.setSynthParam('roomWidth', obj.value)
+				});
 		);
 
 		StaticText(initRow, Rect(0, 0, 0, 20))
@@ -94,7 +100,10 @@ WFSGUI {
 		
 		controlViewWidgets = controlViewWidgets.add(
 			'roomDepthBox' -> WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
-			    .value_(100);
+			    .value_(100)
+			    .action_({ |obj|
+					paramManager.setSynthParam('roomDepth', obj.value);
+				});
 		);
 		
 		// global control row
@@ -136,7 +145,10 @@ WFSGUI {
 		
 		controlViewWidgets = controlViewWidgets.add(
 			'masterVolumeBox' -> WFSScrollingNumberBox(globalRow, Rect(0, 0, 0, 20))
-			    .value_(-6);
+			    .value_(-6)
+			    .action_({ |obj|
+					paramManager.setSynthParam('masterVolume', obj.value);
+				});
 		);
 		
 		StaticText(globalRow, Rect(0, 0, 0, 20))
@@ -266,7 +278,7 @@ WFSGUI {
 		channelControlWidgets = channelControlWidgets.add(
 			'channelXPositionBox' -> WFSScrollingNumberBox(channelRow, Rect(0, 0, 0, 20))
 			    .value_(0.2)
-			    .action_({ |obj| this.setSynthParam('xPosition', activeChannel, obj.value); });
+			    .action_({ |obj| paramManager.setSynthParam('xPosition', activeChannel, obj.value); });
 		);
 
 		channelControlWidgets = channelControlWidgets.add(
@@ -278,7 +290,7 @@ WFSGUI {
 		channelControlWidgets = channelControlWidgets.add(
 			'channelYPositionBox' -> WFSScrollingNumberBox(channelRow, Rect(0, 0, 0, 20))
 			    .value_(0.2)
-			    .action_({ |obj| this.setSynthParam('yPosition', activeChannel, obj.value); });
+			    .action_({ |obj| paramManager.setSynthParam('yPosition', activeChannel, obj.value); });
 		);		
 		
 		channelControlWidgets = channelControlWidgets.add(

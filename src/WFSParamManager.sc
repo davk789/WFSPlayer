@@ -24,10 +24,20 @@ WFSParamManager { // "controller" class
 	}
 
 	setSynthParam { |param...args|
-		param.switch(
+		param.switch( // do unit conversions here
 			'masterVolume', {
 				postln("i don't know what to do please help me.");
+				WFSSynthChannel.setGlobalVolume(args[0].dbamp);
 				//				this.setChannelVolume(args[0], args[1]);				
+			},
+			'airTemperature', { // doesn't push to the separate channels
+				WFSSynthChannel.airTemperature = args[0];
+			},
+			'roomWidth', {
+				postln("ingoring this key -- num speakers * speaker spacing should suffice.");
+			},
+			'roomDepth', { // neither does this
+				WFSSynthChannel.maxDelay = args[0] * 12; // feet to inches
 			},
 			'channelVolume', {
 				synthChannels[args[0]].setLevel(args[1].dbamp);
@@ -40,7 +50,10 @@ WFSParamManager { // "controller" class
 			},
 			{ error("the caller does not match a method."); }
 		);
-		synthChannels[args[0]].params.postln;
+		synthChannels.do{ |obj,ind|
+			postln("here are all the parameters");
+			obj.params.postln;
+		};
 	}
 
 	setGUIControl {

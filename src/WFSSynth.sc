@@ -1,11 +1,11 @@
 WFSSynthChannel { // not inheriting from SC's built in MVC classes
 	classvar channelNumber=0, <groupNumber;
+	classvar <>airTemperature=72, <>maxDelay=1;
 	var s;
 	var <params; // temp read access, do not forget to remove later
 	var nodeNum, groupNum;
 	var paramManager; // the "controller"
-	var speakerLocation, <x, <y;
-	var <>airTemperature=72;
+	var speakerLocation, <x, <y=0;
 
 	*new { |man, loc|
 		groupNumber = Server.default.nextNodeID;
@@ -20,13 +20,14 @@ WFSSynthChannel { // not inheriting from SC's built in MVC classes
 		nodeNum = s.nextNodeID;
 		// there has to be a more elegant way to handle this
 		groupNum = this.class.groupNumber; 
-		speakerLocation = offset;
+		speakerLocation = offset; // this is calculated by the containing class
+		x = speakerLocation; // the default location is at the location of the speaker
 		params = Dictionary[
 			'inBus'      -> 20,
 			'outBus'     -> 1,
 			'delayTime'  -> 0.01,
 			'lev'        -> 1,
-			'i_maxDelay' -> 1, // this should be mutable, actually
+			'maxDelay' -> this.class.maxDelay,
 		];
 
 		// init functions
@@ -34,9 +35,9 @@ WFSSynthChannel { // not inheriting from SC's built in MVC classes
 //		postln(this.class.asString ++ " initialized");
 	}
 
-	setLevel { |par, val|
-		params[par] = val;
-		s.sendMsg('n_set', nodeNum, params[par], val);
+	setLevel { |val|
+		params['lev'] = val;
+		s.sendMsg('n_set', nodeNum, params['lev'], val);
 	}
 
 	x_ { |val|
@@ -49,8 +50,8 @@ WFSSynthChannel { // not inheriting from SC's built in MVC classes
 		this.updateDelay;
 	}
 	
-	getCelsiusTemperature { |temp|
-		^(temp - 32) / 1.8;
+	getCelsiusTemperature {
+		^(this.class.airTemperature - 32) / 1.8;
 	}
 	
 	getSoundSpeed {
@@ -61,11 +62,12 @@ WFSSynthChannel { // not inheriting from SC's built in MVC classes
 
 	updateDelay {
 		var distance, xDistance, delay;
+
 		xDistance = abs(x - speakerLocation);
 		distance = sqrt(xDistance.pow(2) + y.pow(2));
 		delay = distance / this.getSoundSpeed;
-		
-		this.setParam('delayTime', delay);			
+
+		params['delayTime'] = delay;			
 	}
 
 	start {
@@ -77,8 +79,10 @@ WFSSynthChannel { // not inheriting from SC's built in MVC classes
 		s.sendMsg('n_set', nodeNum, 'gate', 0);
 	}
 
+	// keeping the class functions down here
+
 	*loadSynthDef {
-		SynthDef.new("WFSPlayer", { |inBus=20, outBus=1, delayTime=0.01, lev=1, i_maxDelay=1, gate=0|
+		SynthDef.new("WFSPlayer", { |inBus=20, outBus=1, delayTime=0.01, lev=1, maxDelay=1, gate=0|
 			var aSig, aIn, aEnv;
 			
 			aEnv = EnvGen.ar(Env.asr(0.5, 1, 0.5, 'exponential'), gate, lev, doneAction:2);
@@ -90,4 +94,10 @@ WFSSynthChannel { // not inheriting from SC's built in MVC classes
 			
 		}).load(Server.default);
 	}
+
+	*setGlobalVolume { |val|
+		// store the parameter
+		Server.default.sendMsg('n_set', groupNumber, 'lev', val);
+	}
+
 }
