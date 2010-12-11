@@ -1,6 +1,7 @@
 WFSSynthChannel { // not inheriting from SC's built in MVC classes
 	classvar channelNumber=0, <groupNumber;
-	classvar <>airTemperature=72, <>maxDelay=1;
+//	classvar <>airTemperature=72, <>maxDelay=1;
+	var <>airTemperature=72;
 	var s;
 	var <params; // temp read access, do not forget to remove later
 	var nodeNum, groupNum;
@@ -93,11 +94,6 @@ WFSSynthChannel { // not inheriting from SC's built in MVC classes
 			Out.ar(outBus, aSig);
 			
 		}).load(Server.default);
-	}
-
-	*setGlobalVolume { |val|
-		// store the parameter
-		Server.default.sendMsg('n_set', groupNumber, 'lev', val);
 	}
 
 }
