@@ -167,7 +167,9 @@ WFSGUI {
 		// marker area
 
 		controlViewWidgets = controlViewWidgets.add(
-			'locationMarkerArea' -> WFSMarkerArea(controlViewWindow, Rect(0, 0, 475, 475));
+			'locationMarkerArea' -> WFSMarkerArea(controlViewWindow, Rect(0, 0, 475, 475))
+			    .mouseDownAction_({ |obj| paramManager.handleChannelAdd(obj); })
+			    .mouseMoveAction_({ |obj| paramManager.moveSoundSource(obj) });
 		);
 		
 		// channel controls

@@ -28,7 +28,7 @@ WFSSynthChannel { // not inheriting from SC's built in MVC classes
 			'outBus'     -> 1,
 			'delayTime'  -> 0.01,
 			'lev'        -> 1,
-			'maxDelay' -> this.class.maxDelay,
+			'maxDelay'   -> 1,
 		];
 
 		// init functions
@@ -39,6 +39,14 @@ WFSSynthChannel { // not inheriting from SC's built in MVC classes
 	setLevel { |val|
 		params['lev'] = val;
 		s.sendMsg('n_set', nodeNum, params['lev'], val);
+	}
+
+	maxDelay_ { |val|
+		params['maxDelay'] = val;
+	}
+
+	maxDelay {
+		^params['maxDelay'];
 	}
 
 	x_ { |val|

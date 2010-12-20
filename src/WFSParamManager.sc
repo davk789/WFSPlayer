@@ -23,6 +23,21 @@ WFSParamManager { // "controller" class
 		synthChannels = env.channels;
 	}
 
+	moveSoundSource { |markerArea|
+		var chan = markerArea.currentIndex;
+		var markers = markerArea.coords;
+
+		synthChannels[chan].x_(markers[chan].x).y_(markers[chan].y);
+	}
+
+	handleChannelAdd { |markerArea,x,y,mod|
+		var remove;
+		remove = mod == 131072;
+		if(remove.not){
+			
+		};
+	}
+
 	setSynthParam { |param...args|
 		param.switch( // do unit conversions here
 			'masterVolume', {
@@ -48,7 +63,8 @@ WFSParamManager { // "controller" class
 			'roomWidth', {
 				postln("ignoring this key -- num speakers * speaker spacing should suffice.");
 			},
-			'roomDepth', { // neither does this
+			'roomDepth', {
+				// convert distance to delay time
 				synthChannels.do{ |obj,ind|
 					obj.maxDelay = args[0] * 12; // feet to inches
 				};

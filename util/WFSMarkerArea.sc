@@ -1,5 +1,5 @@
 WFSMarkerArea : JSCUserView {
-	var <coords, currentIndex=0, indexCounter=0;
+	var <coords, <currentIndex=0, indexCounter=0;
 	// backgroundColor is renaming this.background
 	var <markerColor, <selectionColor, <>markerSize=5;
 	var <>maxNumPoints=128; // mouse down may lag with too many points
