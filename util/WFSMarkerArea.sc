@@ -1,9 +1,11 @@
 WFSMarkerArea : JSCUserView {
-	var <coords, <currentIndex=0, indexCounter=0;
+	var coords, <currentIndex=0, indexCounter=0;
 	// backgroundColor is renaming this.background
 	var <markerColor, <selectionColor, <>markerSize=5;
 	var <>maxNumPoints=128; // mouse down may lag with too many points
 	var canMove=false;
+	// canAddMarker is buggy, fix that later
+	var <>editable=true, <>canAddMarker=true;
 
 	*new { |view, dim|
 		^super.new(view, dim).init_wfsmarkerarea;
@@ -53,21 +55,27 @@ WFSMarkerArea : JSCUserView {
 
 	mouseDownAction_ { |func|
 		super.mouseDownAction = { |obj,x,y,mod|
-			this.handleMouseDown(x @ y, mod);
+			if(editable){
+				this.handleMouseDown(x @ y, mod);
+			};
 			func.value(obj,x,y,mod);
 		};
 	}
 
 	mouseUpAction_ { |func| // no need to subclass this yet
 		super.mouseUpAction = { |obj,x,y,mod|
-			this.handleMouseUp(x @ y, mod);
+			if(editable){
+				this.handleMouseUp(x @ y, mod);
+			};
 			func.value(obj,x,y,mod);
 		};
 	}
 
 	mouseMoveAction_ { |func|
 		super.mouseMoveAction = { |obj,x,y,mod|
-			this.handleMouseMove(x @ y, mod);
+			if(editable){
+				this.handleMouseMove(x @ y, mod);
+			};
 			func.value(obj,x,y,mod);
 		};
 	}
@@ -84,7 +92,7 @@ WFSMarkerArea : JSCUserView {
 				numPoints = this.countPoints;
 				pointsNotFull = numPoints < maxNumPoints;
 				
-				if(pointsNotFull){
+				if(pointsNotFull && canAddMarker){
 					this.addMarker(coord);
 				};
 			}{
@@ -103,7 +111,7 @@ WFSMarkerArea : JSCUserView {
 	handleMouseUp { |coord, mod|
 		var collisionPoint = this.getCollisionPoint(coord);
 		
-		if((mod == 131072) && collisionPoint.notNil){
+		if((mod == 131072) && collisionPoint.notNil && canAddMarker){
 			this.removeMarker(collisionPoint);
 		};
 	}
@@ -168,5 +176,17 @@ WFSMarkerArea : JSCUserView {
 	selectionColor_ { |color|
 		selectionColor = color;
 		this.refresh;
+	}
+
+	value {
+		^coords.collect{ |obj|
+			obj / (this.bounds.width @ this.bounds.height)
+		};
+	}
+
+	value_ { |val|
+		coords = val.collect{ |obj|
+ 			obj * (this.bounds.width @ this.bounds.height);
+		};
 	}
 }
