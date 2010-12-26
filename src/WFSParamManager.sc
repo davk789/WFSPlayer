@@ -1,10 +1,15 @@
 WFSParamManager { // "controller" class
 	var environment;
 	var synthChannels;
+	var gui;
 	var synthParams, interfaceParams;
 	/*
-		this class should translate between the params, and the delay times. 
-		so, the delay calculations should go here, actually.
+		this class should be responsible for these things:
+		- it should send control messages from the gui and the sequencer to the 
+		  channel objects
+		- it should update the gui when the sequencer changes the channel objects
+
+		the delay calculation may need to go here, actually.
 	*/
 	
 	*new {
@@ -21,21 +26,32 @@ WFSParamManager { // "controller" class
 		// load the environment data after everything is in place
 		environment = env;
 		synthChannels = env.channels;
+		gui = env.gui;
 	}
 
 	moveSoundSource { |markerArea|
+		// i never finished this so i should write out this function later
 		var chan = markerArea.currentIndex;
-		var markers = markerArea.coords;
+		//		var markers = markerArea.coords;
 
-		synthChannels[chan].x_(markers[chan].x).y_(markers[chan].y);
+		//		synthChannels[chan].x_(markers[chan].x).y_(markers[chan].y);
 	}
 
-	handleChannelAdd { |markerArea,x,y,mod|
-		var remove;
-		remove = mod == 131072;
-		if(remove.not){
-			
-		};
+	makeChannelActive { |markerArea|
+		var activeChannel;
+		activeChannel = markerArea.currentIndex;
+		gui.loadActiveChannel(activeChannel);
+	}
+
+	getChannelControlValues { |channelNum|
+		var channelControlValues;
+		channelControlValues = this.convertParameters(synthChannels[channelNum].params);
+		^channelControlValues;
+	}
+
+	convertParameters { |params|
+		// take the synth channel values and convert them to a dictionary
+		// that will set the channel controls
 	}
 
 	setSynthParam { |param...args|

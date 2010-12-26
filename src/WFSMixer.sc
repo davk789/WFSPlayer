@@ -17,7 +17,7 @@ WFSMixer {
 		s = Server.default;
 		mixerGroupNum = s.nextNodeID;
 		channelGroupNum = s.nextNodeID;
-		numChannels = numChan ? 8;
+		numChannels = numChan ? 16;
 
 		WFSSynthChannel.loadSynthDef;
 		this.launchMixer;
@@ -27,10 +27,11 @@ WFSMixer {
 		// the param manager is the controller
 		paramManager = WFSParamManager();
 		// load the model and the view
-		gui = WFSGUI(paramManager);
+		gui = WFSGUI(paramManager, this);
+		
 		this.fillChannels;
 		// now give the param manager the environment
-		paramManager.loadEnvironment(this);
+		paramManager.loadEnvironment(this, channels, gui);
 	}
 
 	fillChannels {

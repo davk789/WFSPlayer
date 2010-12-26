@@ -3,14 +3,15 @@ WFSGUI {
 	var mixerViewWin;
 	var controlViewWidgets, channelControlWidgets, mixerViewWidgets;
 	var activeChannel=0;
-	var paramManager;
+	var paramManager, parent;
 
-	*new { |man|
-		^super.new.init_wfsgui(man);
+	*new { |man, par|
+		^super.new.init_wfsgui(man, par);
 	}
 	
-	init_wfsgui { |man|
+	init_wfsgui { |man, par|
 		paramManager = man;
+		parent = par;
 		controlViewWidgets = Dictionary();
 		mixerViewWidgets = Dictionary();
 		this.makeControlView;
@@ -57,8 +58,11 @@ WFSGUI {
 			.stringColor_(Color.white);
 
 		controlViewWidgets = controlViewWidgets.add(
-			'numSpeakersBox' ->	WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
-			    .value_(16);
+			'numSpeakersBox' ->	NumberBox(initRow, Rect(0, 0, 0, 20))
+			    .value_(16)
+			    .background_(Color.black)
+			    .stringColor_(Color.white)
+			    .action_({ |obj| obj.value.postln; this.setNumSpeakers(obj.value); });
 		);
 		
 		StaticText(initRow, Rect(0, 0, 0, 20))
@@ -168,8 +172,12 @@ WFSGUI {
 
 		controlViewWidgets = controlViewWidgets.add(
 			'locationMarkerArea' -> WFSMarkerArea(controlViewWindow, Rect(0, 0, 475, 475))
-			    .mouseDownAction_({ |obj| paramManager.handleChannelAdd(obj); })
-			    .mouseMoveAction_({ |obj| paramManager.moveSoundSource(obj) });
+			    .canAddMarker_(false)
+			    .value_(Array.fill(parent.numChannels, { |ind|
+					(ind / (parent.numChannels - 1)) @ 0.1
+				}))
+			    .mouseDownAction_({ |obj| paramManager.makeChannelActive(obj); })
+			    .mouseMoveAction_({ |obj| paramManager.moveSoundSource(obj); });
 		);
 		
 		// channel controls
@@ -182,7 +190,12 @@ WFSGUI {
 	}
 
 	loadActiveChannel { |channelNum=0|
+		var values;
 		
+		if(channelNum == activeChannel){
+			^nil; // break out of the function
+		};
+
 		activeChannel = channelNum;
 
 		// remove the old channel
@@ -195,6 +208,10 @@ WFSGUI {
 
 		// initialize and add the channel dict
 		channelControlWidgets = Dictionary();
+
+		// get the parameters for the active channel
+
+		//		values = paramManager.getChannelControlValues(activeChannel);
 
 		// ** the controls need to get the params from the param manager
 
@@ -305,5 +322,18 @@ WFSGUI {
 			    .states_([["load", Color.white, Color.new255(150, 150, 255, 200)]]);
 		);
 	
+	}
+
+	setNumSpeakers { |num|
+		var numChan;
+		parent.numChannels = num;
+
+		// numChan is equal to the argument passed. if there is a problem setting
+		// this value in the parent, then the error will propagate here
+		// good idea or bad idea?
+		numChan = parent.numChannels;
+		controlViewWidgets['locationMarkerArea'].value = Array.fill(numChan, { |ind|
+			(ind / (numChan - 1)) @ 0.1;
+		});
 	}
 }
