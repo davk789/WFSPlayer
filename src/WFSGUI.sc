@@ -2,7 +2,7 @@ WFSGUI {
 	var controlViewWindow, initRow, globalRow, channelRow;
 	var mixerViewWin;
 	var controlViewWidgets, channelControlWidgets, mixerViewWidgets;
-	var activeChannel=0;
+	var activeChannel;
 	var paramManager, parent;
 
 	*new { |man, par|
@@ -60,9 +60,8 @@ WFSGUI {
 		controlViewWidgets = controlViewWidgets.add(
 			'numSpeakersBox' ->	NumberBox(initRow, Rect(0, 0, 0, 20))
 			    .value_(16)
-			    .background_(Color.black)
-			    .stringColor_(Color.white)
-			    .action_({ |obj| obj.value.postln; this.setNumSpeakers(obj.value); });
+			    .background_(Color.grey(0.6))
+			    .action_({ |obj| paramManager.setSynthParam('numSpeakers', obj.value); });
 		);
 		
 		StaticText(initRow, Rect(0, 0, 0, 20))
@@ -156,17 +155,14 @@ WFSGUI {
 		);
 		
 		StaticText(globalRow, Rect(0, 0, 0, 20))
-			.string_("add/remove points")
+			.string_("number of channels")
 			.stringColor_(Color.white);
 		
 		controlViewWidgets = controlViewWidgets.add(	
-			'editBypassButton' -> Button(globalRow, Rect(0, 0, 0, 20))
-			    .states_(
-				    [
-					    ["on", Color.black, Color.green],
-				    	["off", Color.green, Color.black]
-				    ]
-			);
+			'numChannelsBox' -> NumberBox(globalRow, Rect(0, 0, 0, 20))
+			    .background_(Color.grey(0.6))
+			    .value_(parent.numChannels)
+			    .action_({ |obj| this.setNumChannels(obj.value) });
 		);
 		// marker area
 
@@ -185,7 +181,7 @@ WFSGUI {
 		channelRow = VLayoutView(controlViewWindow, Rect(0, 0, 120, 475))
 			.background_(Color.black.alpha_(0.8));
 
-		this.loadActiveChannel; // let's not load the active channel by default
+		this.loadActiveChannel; // this will bypass the break
 	
 	}
 
@@ -324,16 +320,17 @@ WFSGUI {
 	
 	}
 
-	setNumSpeakers { |num|
+	setNumChannels { |num| // number of voices not number of audio channels
 		var numChan;
+
 		parent.numChannels = num;
 
-		// numChan is equal to the argument passed. if there is a problem setting
-		// this value in the parent, then the error will propagate here
-		// good idea or bad idea?
 		numChan = parent.numChannels;
+
 		controlViewWidgets['locationMarkerArea'].value = Array.fill(numChan, { |ind|
 			(ind / (numChan - 1)) @ 0.1;
 		});
+		
+		controlViewWidgets['locationMarkerArea'].refresh;
 	}
 }

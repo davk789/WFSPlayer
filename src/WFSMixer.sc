@@ -17,7 +17,7 @@ WFSMixer {
 		s = Server.default;
 		mixerGroupNum = s.nextNodeID;
 		channelGroupNum = s.nextNodeID;
-		numChannels = numChan ? 16;
+		numChannels = numChan ? 8;
 
 		WFSSynthChannel.loadSynthDef;
 		this.launchMixer;

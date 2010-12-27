@@ -69,7 +69,11 @@ WFSParamManager { // "controller" class
 				// yeah....
 			},
 			'numSpeakers', {
-				// oh yeah ... 
+				
+				// there is a side effect of the channels getting reloaded
+				// completely, also re-initialized
+				environment.numChannels = args[0]; // number of audio channels not voices
+
 			},
 			'airTemperature', { // doesn't push to the separate channels
 				synthChannels.do{ |obj,ind|

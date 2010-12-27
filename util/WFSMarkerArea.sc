@@ -188,5 +188,6 @@ WFSMarkerArea : JSCUserView {
 		coords = val.collect{ |obj|
  			obj * (this.bounds.width @ this.bounds.height);
 		};
+		this.refresh;
 	}
 }
