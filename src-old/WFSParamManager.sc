@@ -1,4 +1,4 @@
-WFSParamManager { // "controller" class
+WFSParamManagerOld { // "controller" class
 	var environment;
 	var synthChannels;
 	var gui;

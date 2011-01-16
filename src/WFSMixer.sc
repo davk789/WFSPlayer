@@ -1,57 +1,41 @@
 WFSMixer {
 	/**
-		all distances measured in inches
+		WFSMixer - a simple spatializing mixer.
+		
+		This class will and should use two sublasses -- an interface class and an engine class.
+		The engine class will act as a container for the channel subclasses.
 	*/
 	var s;
-	var <gui, <>channels, paramManager;
-	var <numChannels, mixerGroupNum, <channelGroupNum;
-	var roomWidth; 				// is this necessary?
-	var <>speakerSpacing=18;	// 
-	var roomDepth;	 	 		// for the maximum delay
-
-	*new { |numChan|
-		^super.new.init_wfsmixer(numChan);
+	var <numChannels=16; // number of speakers, i.e. number of output channels
+	                     // ** to be used by the subordinate classes
+	var <>engine;        // the engine -- the container for the channel synth classes
+	var <>interface;     // the interface class
+	
+	*new { 
+		^super.new.init_wfsmixer;
 	}
-
-	init_wfsmixer { |numChan|
+	
+	init_wfsmixer {
 		s = Server.default;
-		mixerGroupNum = s.nextNodeID;
-		channelGroupNum = s.nextNodeID;
-		numChannels = numChan ? 8;
-
-		WFSSynthChannel.loadSynthDef;
-		this.launchMixer;
-	}
-
-	launchMixer {
-		// the param manager is the controller
-		paramManager = WFSParamManager();
-		// load the model and the view
-		gui = WFSGUI(paramManager, this);
 		
-		this.fillChannels;
-		// now give the param manager the environment
-		paramManager.loadEnvironment(this, channels, gui);
-	}
-
-	fillChannels {
-		var speakerLocation;
-		channels = Array.fill(numChannels, { |ind|
-			speakerLocation = ind * speakerSpacing;
-			WFSSynthChannel(paramManager, speakerLocation);
-		});
-	}
-
-	numChannels_ { |num|
-		numChannels = num;
-
-		if(channels.notNil){
-			channels.do{ |channel,ind|
-				channel.free;
-			};
-		};
-		channels = nil;
+		// should presets be handled here?
 		
-		this.fillChannels;
+		engine = WFSEngine(this); // passing the value from the top-level class
+										 // ** the top-level class may hold the data that passes 
+										 // between interface and engine
+		interface = WFSInterface(this);      //
+
+		// all done, alert the post window
+		postln(this.class.asString ++ " initialized");
 	}
+
+
+	loadActiveChannel { |chan|
+		// jump up to container classes, and then call the subordinate classes'
+		// respective loadActiveChannel() functions
+		engine.loadActiveChannel(chan);
+		interface.loadActiveChannel(chan);
+	}
+	
 }
+

@@ -190,4 +190,9 @@ WFSMarkerArea : JSCUserView {
 		};
 		this.refresh;
 	}
+
+	currentIndex_ { |ind|
+		currentIndex = ind;
+		this.refresh;
+	}
 }

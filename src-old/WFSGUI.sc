@@ -1,4 +1,4 @@
-WFSGUI {
+WFSGUIOld {
 	var controlViewWindow, initRow, globalRow, channelRow;
 	var mixerViewWin;
 	var controlViewWidgets, channelControlWidgets, mixerViewWidgets;

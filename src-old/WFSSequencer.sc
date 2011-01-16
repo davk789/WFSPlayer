@@ -1,4 +1,4 @@
-WFSSequencer {
+WFSSequencerOld {
 	/*
 		not clear yet whether this will be one class, or a set of classes with a 
 		top-level administrator class.

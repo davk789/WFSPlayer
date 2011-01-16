@@ -1,4 +1,4 @@
-WFSTestingVisualization {
+WFSTestingVisualizationOld {
 	var win, controls, channelDisplay;
 	var numChannels;
 
