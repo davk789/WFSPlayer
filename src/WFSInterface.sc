@@ -163,6 +163,7 @@ WFSInterface {
 	}
 	
 	makeGUI {
+		var scrollingNBColor = Color.new255(255, 255, 200);
 
 		controlViewWindow = Window("WFS Mixer", Rect(500.rand, 500.rand, 900, 485)).front;
 		controlViewWindow.view.decorator = FlowLayout(controlViewWindow.view.bounds);
@@ -188,8 +189,7 @@ WFSInterface {
 
 		globalWidgets = globalWidgets.add(
 			'numSpeakersBox' ->	NumberBox(initRow, Rect(0, 0, 0, 20))
-			    .value_(16)
-			    .background_(Color.grey(0.6));
+			    .value_(16);
 		);
 		
 		StaticText(initRow, Rect(0, 0, 0, 20))
@@ -198,7 +198,8 @@ WFSInterface {
 
 		globalWidgets = globalWidgets.add(
 			'speakerSpacingBox' -> WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
-			    .value_(18);
+			    .value_(18)
+			    .background_(scrollingNBColor);
 		);
 
 		StaticText(initRow, Rect(0, 0, 0, 20))
@@ -207,7 +208,8 @@ WFSInterface {
 
 		globalWidgets = globalWidgets.add(
 			'airTempBox' -> WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
-			    .value_(75);
+			    .value_(75)
+			    .background_(scrollingNBColor);
 		);
 
 		StaticText(initRow, Rect(0, 0, 0, 20))
@@ -216,7 +218,8 @@ WFSInterface {
 		
 		globalWidgets = globalWidgets.add(
 			'roomWidthBox' -> WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
-			    .value_(20);
+			    .value_(20)
+			    .background_(scrollingNBColor);
 		);
 
 		StaticText(initRow, Rect(0, 0, 0, 20))
@@ -225,7 +228,8 @@ WFSInterface {
 		
 		globalWidgets = globalWidgets.add(
 			'roomDepthBox' -> WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
-			    .value_(100);
+			    .value_(100)
+			    .background_(scrollingNBColor);
 		);
 		
 		// global control row
@@ -267,7 +271,8 @@ WFSInterface {
 		
 		globalWidgets = globalWidgets.add(
 			'masterVolumeBox' -> WFSScrollingNumberBox(globalRow, Rect(0, 0, 0, 20))
-			    .value_(-6);
+			    .value_(-6)
+			    .background_(scrollingNBColor);
 		);
 		
 		StaticText(globalRow, Rect(0, 0, 0, 20))
@@ -276,8 +281,7 @@ WFSInterface {
 		
 		globalWidgets = globalWidgets.add(	
 			'numChannelsBox' -> NumberBox(globalRow, Rect(0, 0, 0, 20))
-			    .background_(Color.grey(0.6))
-			    .value_(numChannels)
+			    .value_(numChannels);
 		);
 		// marker area
 
@@ -364,7 +368,8 @@ WFSInterface {
 	
 		channelWidgets = channelWidgets.add(
 			'channelVolumeBox' -> WFSScrollingNumberBox(channelRow, Rect(0, 0, 0, 20))
-			    .value_(-6);
+			    .value_(-6)
+			    .background_(scrollingNBColor);
 		);
 		// implement the marker area first before these
 		StaticText(channelRow, Rect(0, 0, 0, 20))
