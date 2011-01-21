@@ -4,8 +4,7 @@ WFSMarkerArea : JSCUserView {
 	var <markerColor, <selectionColor, <>markerSize=5;
 	var <>maxNumPoints=128; // mouse down may lag with too many points
 	var canMove=false;
-	// canAddMarker is buggy, fix that later
-	var <>editable=true, <>canAddMarker=true;
+	var <>editable=true, <>canAddMarker=true; // watch canAddMarker for bugs
 
 	*new { |view, dim|
 		^super.new(view, dim).init_wfsmarkerarea;
@@ -117,8 +116,12 @@ WFSMarkerArea : JSCUserView {
 	}
 
 	handleMouseMove { |coord, mod|
+		var coordPoint;
+		// we can not drag the marker out of the visible area!
+		coordPoint = coord.x.max(0).min(this.bounds.width) @ coord.y.max(0).min(this.bounds.height);
+		
 		if((mod != 131072) && canMove){
-			this.moveMarker(coord);
+			this.moveMarker(coordPoint);
 		}
 	}
 
