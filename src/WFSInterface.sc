@@ -10,8 +10,8 @@ WFSInterface {
 		   on its own
 	  */
 
-	var activeChannel=0; // index of the active source channel
-	var numChannels=8;   // local representation of the number of sound sources
+	var activeChannel=0;    // index of the active source channel
+	var channelCounter=0;   // counter value for use with the channel display only
 	var parent;
 
 	// GUI elements
@@ -32,8 +32,6 @@ WFSInterface {
 
 		// startup functions
 		this.makeGUI;
-		// initialize the bank of values based on the default GUI values
-		this.initChannelWidgetValues;
 		
 		postln(this.class.asString ++ " initialized");
 	}
@@ -58,7 +56,12 @@ WFSInterface {
 		// rely on this member variable.
 		activeChannel = channelNum;
 
+		// *** both of the following GUI elements call loadActiveChannel
+		// so, somehow these calls should be filtered. but for now, the redundancy
+		// should be less of a problem than forcing extra calls for everything that
+		// uses this function (gui actions, add/remove channels/preset load calls, etc.)
 		channelWidgets['channelDisplay'].value = activeChannel;
+		globalWidgets['locationMarkerArea'].currentIndex = activeChannel;
 
 		channelWidgetValues[activeChannel].keysValuesDo{ |key,val|
 			channelWidgets[key].value = val;
@@ -76,8 +79,145 @@ WFSInterface {
 		parent.loadActiveChannel(chan);
 	}
 
+	addChannel {
+		var markers, channelMenuItems;
+		/**
+			if there are no channels yet, do the inialization action.
+			if there are channels,
+			- increment the channel counter
+			- add the values to channelWidgetValues
+			- add a node to the MarkerArea
+			- add the choice to the selection menu
+			- activate the newly created channel
+		*/
+		if(channelWidgetValues.isNil){
+			this.initializeChannels;
+		}{ // else
+			channelCounter = channelCounter + 1;
+
+			// add a set of values to channelWidgetValues
+			channelWidgetValues = channelWidgetValues.add(
+				Dictionary[
+					'channelLabel'        -> ("Channel " ++ channelCounter),
+					'audioSourceMenu'     -> 0, 
+					'channelLoopButton'   -> 0,  
+					'channelVolumeBox'    -> -6,
+					'channelXPositionBox' -> 0.1,
+					'channelYPositionBox' -> 0.1,
+				];
+			);
+
+			// add a marker to locationMarkerArea
+			/*
+				this always adds the new point to a single location (0.1 @ 0.1). it may be nice
+				to have handle the locatin more intelligently, so that the channels do not overlap
+				if you hit "add channel" more than once without moving the point.... maybe later
+			*/
+			markers = globalWidgets['locationMarkerArea'].value;
+			markers = markers.add(
+				channelWidgetValues[channelWidgetValues.lastIndex]['channelXPositionBox']
+			        @
+				channelWidgetValues[channelWidgetValues.lastIndex]['channelYPositionBox']
+			);
+			globalWidgets['locationMarkerArea'].value = markers;
+
+			// add an item to channelLabel
+			channelMenuItems = channelWidgets['channelDisplay'].items;
+			channelMenuItems = channelMenuItems.add("Channel " ++ channelCounter);
+			channelWidgets['channelDisplay'].items = channelMenuItems;
+
+			// activate the newly created value
+			this.activateChannel(channelWidgetValues.lastIndex); 
+		};
+
+	}
+
+	initializeChannels {
+		/*
+			initialization tasks performed here:
+			- set the numChannels member variable to 1
+			- initialize channelWidgetValues and the value of globalWidgets['locationMarkerArea'].
+			- initialize the value of the channel selection menu
+			- activate the channel controls.
+		*/
+
+		// initialize the channel counter
+		channelCounter = 1;
+
+		// channelWidgetValues is an array of dictionaries, holding values with the same keys
+		// as their GUI counterparts. this simplifies the loadChannel function
+		
+		channelWidgetValues = [
+			Dictionary[
+				'channelLabel'        -> "Channel 1",
+				'audioSourceMenu'     -> 0,
+				'channelLoopButton'   -> 0,
+				'channelVolumeBox'    -> -6,
+				'channelXPositionBox' -> 0.1,
+				'channelYPositionBox' -> 0.1,
+			];
+		];
+		
+		// initialize the first channel in the MarkerArea to the value from the number box
+		globalWidgets['locationMarkerArea'].value = [
+			channelWidgetValues[0]['channelXPositionBox'] @	channelWidgetValues[0]['channelYPositionBox']
+		];
+
+		channelWidgets['channelDisplay'].items = ["Channel 1"];
+
+		channelWidgets.do{ |obj|
+			obj.enabled = true;
+		};
+
+		globalWidgets['locationMarkerArea'].enabled = true;
+
+		this.activateChannel(0);
+	}
+
+	removeChannel {
+		var markers, displayValues;
+		case{channelWidgetValues.isNil}{
+			// nothing to de-initialize
+			^nil;
+		} // else if
+		{ channelWidgetValues.size == 1 }{
+			// set channelWidgetValues to nil
+			channelWidgetValues = nil;
+			// empty the display values
+			channelWidgets['channelDisplay'].value = 0;
+			channelWidgets['channelDisplay'].items = Array();
+			
+			// empty the marker area
+			globalWidgets['locationMarkerArea'].value = Array();
+			
+			// disable the GUI elements
+			channelWidgets.do{ |obj|
+				obj.enabled = false;
+				globalWidgets['locationMarkerArea'].enabled = false;
+			};
+		} // else
+		{
+			// remove the current channel values, 
+			channelWidgetValues.removeAt(activeChannel);
+
+			// remove the marker from the markerArea
+			markers = globalWidgets['locationMarkerArea'].value;
+			markers.removeAt(activeChannel);
+			globalWidgets['locationMarkerArea'].value = markers;
+			
+			// remove the entry from the menu
+			displayValues = channelWidgets['channelDisplay'].items;
+			displayValues.removeAt(activeChannel);
+			channelWidgets['channelDisplay'].items = displayValues;
+			
+			// activate the first channel of the project
+			this.activateChannel(0);
+		};
+
+	}
+
 	setSoundLocation { |markerAreaVal|
-		var val;
+		var val, xPos, yPos;
 		/**
 			This is called by the MarkerArea. It performs these steps:
 			1 - store the value in the list of Dictionaries containing the interface parameters
@@ -88,7 +228,7 @@ WFSInterface {
 		// notice that activeChannel is already set from the activate function. So, this
 		// function can rely on the value implicitly.
 		val  = markerAreaVal[activeChannel];
-
+		
 		// store the value
 		channelWidgetValues[activeChannel]['channelXPositionBox'] = val.x;
 		channelWidgetValues[activeChannel]['channelYPositionBox'] = val.y;
@@ -100,6 +240,14 @@ WFSInterface {
 
 		// .. and now push the value out to the engine
 		// ... still need to implement this
+	}
+
+	setChannelLabel { |label|
+		/**
+			Stores the custom label for each channel, and that's it.
+			  ... maybe do something more with this later.
+		*/
+		channelWidgetValues[activeChannel]['channelLabel'] = label;
 	}
 
 	setChannelXPosition { |val|
@@ -274,23 +422,20 @@ WFSInterface {
 			    .value_(-6)
 			    .background_(scrollingNBColor);
 		);
-		
-		StaticText(globalRow, Rect(0, 0, 0, 20))
-			.string_("number of channels")
-			.stringColor_(Color.white);
-		
-		globalWidgets = globalWidgets.add(	
-			'numChannelsBox' -> NumberBox(globalRow, Rect(0, 0, 0, 20))
-			    .value_(numChannels);
+
+		globalWidgets = globalWidgets.add(
+			'addChannelButton' -> Button(globalRow, Rect(0, 0, 0, 20))
+			    .states_([["add channel", Color.black, Color.grey]])
+			    .action_({ this.addChannel; })
 		);
 		// marker area
 
 		globalWidgets = globalWidgets.add(
 			'locationMarkerArea' -> WFSMarkerArea(controlViewWindow, Rect(0, 0, 475, 475))
 			    .canAddMarker_(false)
-			    .value_(Array.fill(numChannels, { |ind|
+			    /*.value_(Array.fill(numChannels, { |ind| // empty to begin with
 					(ind / (numChannels - 1)) @ 0.1
-				}))
+				}))*/
 			    .mouseDownAction_({ |obj| this.activateChannel(obj.currentIndex); })
 			    .mouseMoveAction_({ |obj| this.setSoundLocation(obj.value); });
 		);
@@ -303,18 +448,16 @@ WFSInterface {
 		// grr i wish there was a way to auto generate these controls
 		channelWidgets = channelWidgets.add(
 			'channelDisplay' -> PopUpMenu(channelRow, Rect(0, 0, 0, 20))
-			    .items_(Array.fill(numChannels, { |ind|
-					"Channel " ++ (ind + 1)
-				}))
-			    .value_(0)
-			    .action_({ |obj|
-					var val = obj.value;
-					globalWidgets['locationMarkerArea'].currentIndex = val;
-					this.activateChannel(val);
-				})
+			    .action_({ |obj| this.activateChannel(obj.value); })
 			    .stringColor_(Color.white);
 		);
 
+		channelWidgets = channelWidgets.add(
+			'channelLabel' -> TextField(channelRow, Rect(0, 0, 0, 20))
+			    .string_("Channel 1")
+			    .action_({ |obj| this.setChannelLabel(obj.value); });
+		);
+		
 		StaticText(channelRow, Rect(0, 0, 0, 20))
 		    .string_("audio source")
 		    .stringColor_(Color.white);
@@ -359,7 +502,10 @@ WFSInterface {
 		
 		channelWidgets = channelWidgets.add(
 			'channelLoopButton' -> Button(channelRow, Rect(0, 0, 0, 20))
-			    .states_([["loop", Color.black, Color.grey]]);
+			    .states_([
+					["loop", Color.black, Color.grey],
+					["loop", Color.black, Color.yellow]
+				]);
 		);
 	
 		StaticText(channelRow, Rect(0, 0, 0, 20))
@@ -378,20 +524,37 @@ WFSInterface {
 		
 		channelWidgets = channelWidgets.add(
 			'channelXPositionBox' -> NumberBox(channelRow, Rect(0, 0, 0, 20))
-			    .value_(0.2)
+			    .value_(0.1)
 			    .action_({ |obj| this.setChannelXPosition(obj.value); });
 		);
 		
 		StaticText(channelRow, Rect(0, 0, 0, 20))
 		    .string_("y-position (0..1)")
 		    .stringColor_(Color.white);
-
 		channelWidgets = channelWidgets.add(
 			'channelYPositionBox' -> NumberBox(channelRow, Rect(0, 0, 0, 20))
-			    .value_(0.2)
+			    .value_(0.1)
 			    .action_({ |obj| this.setChannelYPosition(obj.value) });
 		);
+
+		channelWidgets = channelWidgets.add(
+			'removeChannelButton' -> Button(channelRow, Rect(0, 0, 0, 20))
+			    .states_([["remove channel", Color.red, Color.black]])
+			    .action_({ this.removeChannel; })
+		);
+
+		// disable the channel controls until a sound source is added
+		globalWidgets['locationMarkerArea'].enabled = false;
 		
+		channelWidgets.do{ |obj|
+			obj.enabled = false;
+		};
+
+
+		/*
+			// leave out the presets per-channel for now
+			// depending on how the usage develops it will probably
+			// be better to keep the presets limited to the global settings
 		channelWidgets = channelWidgets.add(
 			'channelSaveButton' -> Button(channelRow, Rect(0, 0, 0, 20))
 			    .states_([["save", Color.white, Color.new255(150, 150, 255, 200)]]);
@@ -400,27 +563,10 @@ WFSInterface {
 		channelWidgets = channelWidgets.add(
 			'channelLoadButton' -> Button(channelRow, Rect(0, 0, 0, 20))
 			    .states_([["load", Color.white, Color.new255(150, 150, 255, 200)]]);
-		);	
+			);	*/
 
 	}
 
-	initChannelWidgetValues {
-		// the interface contains a list of dictionaries that hold the values for each channel.
-		// when activating the channel, the widgets will persist, and their values will only be
-		// updated. there should be a check to make sure that these values and their engine
-		// counterparts are syncronized
-		channelWidgetValues = Array.fill(numChannels, { |ind|
-			Dictionary[
-				'audioSourceMenu'     -> channelWidgets['audioSourceMenu'].value,
-				'channelLoopButton'   -> channelWidgets['channelLoopButton'].value,
-				'channelVolumeBox'    -> channelWidgets['channelVolumeBox'].value,
-				'channelXPositionBox' -> globalWidgets['locationMarkerArea'].value[ind].x,
-				'channelYPositionBox' -> globalWidgets['locationMarkerArea'].value[ind].y,
-			];
-		});
-
-	}
-	
 	setNumChannels { |num|
 		/**
 			prepare the gui to handle the number of active channels.

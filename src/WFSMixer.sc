@@ -8,6 +8,10 @@ WFSMixer {
 	var s;
 	var <numChannels=16; // number of speakers, i.e. number of output channels
 	                     // ** to be used by the subordinate classes
+	/**** 
+		currently missing the number of input channels -- this data is only kept in the interface 
+		at the moment -- this data needs to be used by the engine as well
+	*/ 
 	var <>engine;        // the engine -- the container for the channel synth classes
 	var <>interface;     // the interface class
 	
