@@ -1,4 +1,4 @@
-WFSSequencer : Object {
+WFSSequencer {
 	*new { 
 		^super.new.init_wfsequencer;
 	}

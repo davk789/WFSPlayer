@@ -15,9 +15,13 @@ WFSInterface {
 	var parent;
 
 	// GUI elements
-	var controlViewWindow, initRow, globalRow, channelRow; // containers for contolViewWidgets
+	var controlViewWindow, initRow, globalRow, channelRow, transportRow; // containers for contolViewWidgets
 	var globalWidgets, channelWidgets; // all gui elements are kept in a Dict for easy access
-	// for now, the values of the channels should be kept in a list of Dictionaries
+	/*
+		NOTE: channelWidgetValues gets initialized and deinitialized with the add
+		and remove functions, rather than getting initialized in the init_wfsinterface function
+		and simply being emptied when removing the last channel.
+	*/
 	var channelWidgetValues;
 
 	*new { |par|
@@ -47,10 +51,6 @@ WFSInterface {
 			 - update the value of the channel gui elements based on the array of
 			   dictionaries that store the parameters for all the channels
 		*/
-		
-		if(channelNum == activeChannel){
-			^nil; // break out of the function
-		};
 
 		// this is important -- the functions called by marker area and position number boxes
 		// rely on this member variable.
@@ -176,8 +176,9 @@ WFSInterface {
 
 	removeChannel {
 		var markers, displayValues;
+
 		case{channelWidgetValues.isNil}{
-			// nothing to de-initialize
+			// nothing to de-initialize, break out of the function
 			^nil;
 		} // else if
 		{ channelWidgetValues.size == 1 }{
@@ -209,7 +210,7 @@ WFSInterface {
 			displayValues = channelWidgets['channelDisplay'].items;
 			displayValues.removeAt(activeChannel);
 			channelWidgets['channelDisplay'].items = displayValues;
-			
+
 			// activate the first channel of the project
 			this.activateChannel(0);
 		};
@@ -309,11 +310,27 @@ WFSInterface {
 		// ** maybe both all the MarkerArea updates can call one funtction
 		// dealing with the push stuff later, though
 	}
+
+	setChannelVolume { |vol|
+		// store the volume parameter and push the value to the engine
+		channelWidgetValues[activeChannel]['channelVolumeBox'] = vol;
+
+		/*
+			push the value to the engine -- the conversion from db to amp should be handled either
+			in the top-level class or in the engine I think. the interface code should not
+			be concerned with the values that are used by the engine.
+		*/
+	}
+
+	setChannelAudioSource { |source|
+		// again -- this functionality needs to be implemented in the engine
+		channelWidgetValues[activeChannel]['audioSourceMenu'] = source;
+	}
 	
 	makeGUI {
 		var scrollingNBColor = Color.new255(255, 255, 200);
 
-		controlViewWindow = Window("WFS Mixer", Rect(500.rand, 500.rand, 900, 485)).front;
+		controlViewWindow = Window("WFS Mixer", Rect(500.rand, 500.rand, 1100, 485)).front;
 		controlViewWindow.view.decorator = FlowLayout(controlViewWindow.view.bounds);
 		
 		initRow = VLayoutView(controlViewWindow, Rect(0, 0, 120, 475))
@@ -390,29 +407,9 @@ WFSInterface {
 			.stringColor_(Color.white);
 
 		globalWidgets = globalWidgets.add(
-			'globalPlayButton' -> Button(globalRow, Rect(0, 0, 0, 20))
-			    .states_([[">", Color.black, Color.white]])
-			    .font_(Font.new("Arial Black", 12));
+			'globalTransportView' -> WFSVTransportView(globalRow, Rect(0, 0, 0, 180));
 		);
-		
-		globalWidgets = globalWidgets.add(
-			'globalPauseButton' -> Button(globalRow, Rect(0, 0, 0, 20))
-			    .states_([["||", Color.black, Color.yellow]])
-			    .font_(Font.new("Arial Black", 12));
-		);
-		
-		globalWidgets = globalWidgets.add(
-			'globalStopButton' -> Button(globalRow, Rect(0, 0, 0, 20))
-			    .states_([["[]", Color.white, Color.black]])
-			    .font_(Font.new("Arial Black", 12));
-		);
-		
-		globalWidgets = globalWidgets.add(
-			'globalRecordButton' -> Button(globalRow, Rect(0, 0, 0, 20))
-			    .states_([["O", Color.black, Color.red]])
-			    .font_(Font.new("Arial Black", 12));
-		);
-		
+				
 		StaticText(globalRow, Rect(0, 0, 0, 20))
 			.string_("master volume (dB)")
 			.stringColor_(Color.white);
@@ -448,8 +445,7 @@ WFSInterface {
 		// grr i wish there was a way to auto generate these controls
 		channelWidgets = channelWidgets.add(
 			'channelDisplay' -> PopUpMenu(channelRow, Rect(0, 0, 0, 20))
-			    .action_({ |obj| this.activateChannel(obj.value); })
-			    .stringColor_(Color.white);
+			    .action_({ |obj| this.activateChannel(obj.value); });
 		);
 
 		channelWidgets = channelWidgets.add(
@@ -464,35 +460,8 @@ WFSInterface {
 
 		channelWidgets = channelWidgets.add(
 			'audioSourceMenu' -> PopUpMenu(channelRow, Rect(0, 0, 0, 20))
-			    .items_(["select...", "Audio In 1", "Audio In 2", "Audio In etc", "Sampler 1", "SynthDef 1"]);
-		);
-		
-		StaticText(channelRow, Rect(0, 0, 0, 20))
-		    .string_("transport")
-		    .stringColor_(Color.white);
-		
-		channelWidgets = channelWidgets.add(
-			'channelPlayButton' -> Button(channelRow, Rect(0, 0, 0, 20))
-			    .states_([[">", Color.black, Color.white]])
-			    .font_(Font.new("Arial Black", 12));
-		);
-		
-		channelWidgets = channelWidgets.add(
-			'channelPauseButton' -> Button(channelRow, Rect(0, 0, 0, 20))
-			    .states_([["||", Color.black, Color.yellow]])
-			    .font_(Font.new("Arial Black", 12));
-		);
-		
-		channelWidgets = channelWidgets.add(
-			'channelStopButton' -> Button(channelRow, Rect(0, 0, 0, 20))
-			    .states_([["[]", Color.white, Color.black]])
-			    .font_(Font.new("Arial Black", 12));
-		);
-		
-		channelWidgets = channelWidgets.add(
-			'channelRecordButton' -> Button(channelRow, Rect(0, 0, 0, 20))
-			    .states_([["O", Color.black, Color.red]])
-			    .font_(Font.new("Arial Black", 12));
+			    .items_(["select...", "Audio In 1", "Audio In 2", "Audio In etc", "Sampler 1", "SynthDef 1"])
+			    .action_({ |obj| this.setChannelAudioSource(obj.value) });
 		);
 		
 		channelWidgets = channelWidgets.add(
@@ -515,7 +484,8 @@ WFSInterface {
 		channelWidgets = channelWidgets.add(
 			'channelVolumeBox' -> WFSScrollingNumberBox(channelRow, Rect(0, 0, 0, 20))
 			    .value_(-6)
-			    .background_(scrollingNBColor);
+			    .background_(scrollingNBColor)
+			    .action_({ |obj| this.setChannelVolume(obj.value) });
 		);
 		// implement the marker area first before these
 		StaticText(channelRow, Rect(0, 0, 0, 20))
@@ -541,6 +511,22 @@ WFSInterface {
 			'removeChannelButton' -> Button(channelRow, Rect(0, 0, 0, 20))
 			    .states_([["remove channel", Color.red, Color.black]])
 			    .action_({ this.removeChannel; })
+		);
+		
+		// transport row
+		/**
+			I need to figure out how this will be used here.
+		  */
+		
+		transportRow = VLayoutView(controlViewWindow, Rect(0, 0, 120, 475))
+			.background_(Color.black.alpha_(0.8));
+			
+		StaticText(transportRow, Rect(0, 0, 0, 20))
+		    .string_("transport")
+		    .stringColor_(Color.white);
+		
+		channelWidgets = channelWidgets.add(
+			'channelTransportView' -> WFSVTransportView(transportRow, Rect(0, 0, 0, 180));
 		);
 
 		// disable the channel controls until a sound source is added

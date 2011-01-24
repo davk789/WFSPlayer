@@ -81,6 +81,8 @@ WFSVTransportView : JSCVLayoutView {
 	enabled_ { |en|
 		super.enabled = en;
 		playButton.enabled = en;
+		forwardButton.enabled = en;
+		reverseButton.enabled = en;
 		pauseButton.enabled = en;
 		recordButton.enabled = en;
 		stopButton.enabled = en;
