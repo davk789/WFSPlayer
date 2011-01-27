@@ -42,14 +42,14 @@ WFSVTransportView : JSCVLayoutView {
 		    .states_([[">>", Color.white, Color.black]])
 		    .font_(Font("Arial Black", 12))
 		    .action_({ |obj|
-				playAction.value(obj);
+				forwardAction.value(obj);
 			});
 
 		reverseButton = Button(this, Rect(0, 0, 0, buttonHeight))
 		    .states_([["<<", Color.white, Color.black]])
 		    .font_(Font("Arial Black", 12))
 		    .action_({ |obj|
-				playAction.value(obj);
+				reverseAction.value(obj);
 			});
 
 		pauseButton = Button(this, Rect(0, 0, 0, buttonHeight))
@@ -63,8 +63,8 @@ WFSVTransportView : JSCVLayoutView {
 		    .states_([["[]", Color.white, Color.black]])
 		    .font_(Font("Arial Black", 12))
 		    .action_({ |obj|
-				playButton.value = 0;
-				recordButton.value = 0;
+				playButton.valueAction = 0;
+				recordButton.valueAction = 0;
 				stopAction.value(obj);
 			});
 		
@@ -72,7 +72,6 @@ WFSVTransportView : JSCVLayoutView {
 		    .states_([["o", Color.red, Color.black], ["o", Color.black, Color.red]])
 		    .font_(Font("Arial Black", 12))
 		    .action_({ |obj|
-				if(obj.value == 1){ playButton.valueAction = 1; };
 				recordAction.value(obj);
 			});
 		

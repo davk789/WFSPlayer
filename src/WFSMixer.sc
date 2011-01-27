@@ -12,8 +12,9 @@ WFSMixer {
 		currently missing the number of input channels -- this data is only kept in the interface 
 		at the moment -- this data needs to be used by the engine as well
 	*/ 
-	var <>engine;        // the engine -- the container for the channel synth classes
-	var <>interface;     // the interface class
+	var <>engine;        // has all the audio classes -- sources and mixer channels
+	var <>interface;
+	var <>sequencer;
 	
 	*new { 
 		^super.new.init_wfsmixer;
@@ -23,7 +24,9 @@ WFSMixer {
 		s = Server.default;
 		
 		// should presets be handled here?
-		
+		// watch for dependency errors
+		sequencer = WFSSequencer(this);
+
 		engine = WFSEngine(this); // passing the value from the top-level class
 										 // ** the top-level class may hold the data that passes 
 										 // between interface and engine

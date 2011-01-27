@@ -13,6 +13,7 @@ WFSInterface {
 	var activeChannel=0;    // index of the active source channel
 	var channelCounter=0;   // counter value for use with the channel display only
 	var parent;
+	var sequencer;
 
 	// GUI elements
 	var controlViewWindow, initRow, globalRow, channelRow, transportRow; // containers for contolViewWidgets
@@ -30,7 +31,11 @@ WFSInterface {
 	
 	init_wfsinterface { |par|
 		// member data
+		/* 	get the stuff from the environment -- error handling would be a wise
+			choice in a situation with multiple developers */
 		parent = par; // get reference to the containing class
+		sequencer = parent.sequencer; // create a local represenation of the sequencer
+		
 		globalWidgets = Dictionary();
 		channelWidgets = Dictionary();
 
@@ -239,15 +244,25 @@ WFSInterface {
 		channelWidgets['channelXPositionBox'].value = channelWidgetValues[activeChannel]['channelXPositionBox'];
 		channelWidgets['channelYPositionBox'].value = channelWidgetValues[activeChannel]['channelYPositionBox'];
 
+		// send the value of the marker area to the sequencer
+		sequencer.addEvent(
+			channelWidgetValues[activeChannel]['channelLabel'],
+			markerAreaVal
+		);
+		
 		// .. and now push the value out to the engine
 		// ... still need to implement this
 	}
 
 	setChannelLabel { |label|
+		var menuItems;
 		/**
-			Stores the custom label for each channel, and that's it.
-			  ... maybe do something more with this later.
+			Stores the custom label for each channel, and change the menu label to match.
 		*/
+		menuItems = channelWidgets['channelDisplay'].items;
+		menuItems[activeChannel] = label;
+		channelWidgets['channelDisplay'].items = menuItems;
+
 		channelWidgetValues[activeChannel]['channelLabel'] = label;
 	}
 
@@ -326,11 +341,23 @@ WFSInterface {
 		// again -- this functionality needs to be implemented in the engine
 		channelWidgetValues[activeChannel]['audioSourceMenu'] = source;
 	}
+
+	setRecord { |button|
+		if(button.value.toBool){
+			sequencer.startChannelRecording(
+				channelWidgetValues[activeChannel]['channelLabel']
+			);
+		}{
+			sequencer.stopChannelRecording(
+				channelWidgetValues[activeChannel]['channelLabel']
+			)
+		};
+	}
 	
 	makeGUI {
 		var scrollingNBColor = Color.new255(255, 255, 200);
 
-		controlViewWindow = Window("WFS Mixer", Rect(500.rand, 500.rand, 1100, 485)).front;
+		controlViewWindow = Window("WFS Mixer", Rect(500.rand, 500.rand, 1000, 485)).front;
 		controlViewWindow.view.decorator = FlowLayout(controlViewWindow.view.bounds);
 		
 		initRow = VLayoutView(controlViewWindow, Rect(0, 0, 120, 475))
@@ -526,7 +553,8 @@ WFSInterface {
 		    .stringColor_(Color.white);
 		
 		channelWidgets = channelWidgets.add(
-			'channelTransportView' -> WFSVTransportView(transportRow, Rect(0, 0, 0, 180));
+			'channelTransportView' -> WFSVTransportView(transportRow, Rect(0, 0, 0, 180))
+			    .recordAction_({ |obj| this.setRecord(obj) });
 		);
 
 		// disable the channel controls until a sound source is added
