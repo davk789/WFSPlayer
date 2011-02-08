@@ -12,6 +12,30 @@ SynthDefs that can be loaded with this set of SuperCollider classes.
 ////////////////////////////////////////
 ***** notes:
 
+/////// sequencer notes:
+
+the sequencer will need to hold this data:
+***timestamp
+ the timestamp, when recorded, will be the time that the event was triggered, 
+ after the recording started. So, the playback sequence will need to subtract the 
+ next value from the last value played. I don't think there will be anything more 
+ complicated than that, right?
+
+*data:
+ the location of the point in space -- the playback will move the location here
+ the source channel being affected -- I made it possible to move single points
+  in the marker area in order to facilitiate this.
+   ... but how do I get this value? there are two ways to do this -- index in to an
+       array, or a unique identifier in a Dictionary. because source channels can be 
+       added and removed at will, then it is probably better to refer to an ID. The
+       MarkerArea uses indexes, so I would need to implement a conversion algorithm, 
+       or else change the MarkerArea to use Dictionaries -- I think the former is a
+	   better idea
+
+
+
+//////
+
 a big part of this work will involve translating user parameters to the raw delay times
 that will be set on each channel.
 

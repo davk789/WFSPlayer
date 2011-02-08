@@ -35,6 +35,14 @@ WFSEngine {
 		postln(chan);
 	}
 
+	addChannel {
+		postln("this will add an input channel to the WFSEngine instance");
+	}
+
+	removeChannel { |chan|
+		postln("this will remove channel " ++ chan ++ " from the WFSEngine instance");
+	}
+
 	loadSynthChannels {
 		channels = numChannels.collect{ |ind|
 			WFSSynthChannel(ind);
