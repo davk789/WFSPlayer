@@ -1,14 +1,15 @@
 WFSMixer {
 	/**
 		WFSMixer - a simple spatializing mixer.
-		
-		This class will and should use two sublasses -- an interface class and an engine class.
-		The engine class will act as a container for the channel subclasses.
+
+		The top level class does these things:
+		- instantiate the objects that will perform all the work
+		- allow for communication between objects through this top-level class
+		- synchronize function calls that must affect all object in the project
 	*/
 	var s;
 	var <numChannels=16; // number of speakers, i.e. number of output channels
 	                     // ** to be used by the subordinate classes
-	var <>sourceChannelRegister; // array containing id names of all input channels
 	/**** 
 		currently missing the number of input channels -- this data is only kept in the interface 
 		at the moment -- this data needs to be used by the engine as well
@@ -23,10 +24,9 @@ WFSMixer {
 	
 	init_wfsmixer {
 		s = Server.default;
-		sourceChannelRegister = Array();
 		
 		// watch for dependency errors
-		sequencer = WFSSequencer(this);
+		sequencer = WFSSequencer(this); // the sequencer is not accessing the parent yet.
 
 		engine = WFSEngine(this); // passing the value from the top-level class
 										 // ** the top-level class may hold the data that passes 
@@ -56,16 +56,6 @@ WFSMixer {
 		interface.removeChannel(chan);
 	}
 	
-	registerSourceChannel {
-		/**
-			add/alter channel IDs. the point of the sourceChannelRegister is to provide
-			a reference that can be used by the various subordinate objects to ...
-			ensure that they are syncronized? which means that these classes need
-			to provide their own checks that are performed under different circumstances?
-		*/
-		postln("add/alter values to the list of channel IDs");
-	}
-
 	loadActiveChannel { |chan|
 		// jump up to container classes, and then call the subordinate classes'
 		// respective loadActiveChannel() functions

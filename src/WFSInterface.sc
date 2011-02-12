@@ -15,15 +15,9 @@ WFSInterface {
 	// GUI elements
 	var controlViewWindow, initRow, globalRow, channelRow, transportRow; // containers for contolViewWidgets
 	var globalWidgets, channelWidgets; // all gui elements are kept in a Dict for easy access
-	/* a default set of values which get called by the init and addChannel methods
-		... maybe this is making things even messier, but since I am adding and removing
-	    widgets, I think I should not force myself to edit in multiple locations. */
+
+	// parameter defaults and storage
 	var defaultChannelWidgetValues;
-	/*
-		channelWidgetValues: the values of the channel parameters.
-		channelWidgetValues gets initialized and deinitialized with the add
-		and remove functions
-	*/
 	var channelWidgetValues;
 
 	*new { |par|
@@ -36,31 +30,58 @@ WFSInterface {
 			choice in a situation with multiple developers */
 		parent = par; // get reference to the containing class
 		sequencer = parent.sequencer; // create a local represenation of the sequencer
-		
+
 		globalWidgets = Dictionary();
 		channelWidgets = Dictionary();
 		defaultChannelWidgetValues =  Dictionary[
-		    'channelLabel'        -> ("Channel " ++ channelCounter),
-			'audioSourceMenu'     -> 0, 
-			'channelLoopButton'   -> 0,  
-			'channelVolumeBox'    -> -6,
-			'channelXPositionBox' -> 0.1,
-			'channelYPositionBox' -> 0.1,
+		    'channelLabel'            -> ("Channel " ++ channelCounter),
+			'audioSourceMenu'         -> 0, 
+			'channelLoopButton'       -> 0,  
+			'channelVolumeBox'        -> -6,
+			'channelXPositionBox'     -> 0.1,
+			'channelYPositionBox'     -> 0.1,
 			// channel sequencer params
-			'channelRecordModeButton' -> 1, // convert to boolean before sending to sequencer
+			'channelRecordButton'     -> 0, // this and the recordMode are converted
+			'channelRecordModeButton' -> 1, // to bool when used
+			'channelPlayButton'       -> 0,
+			'channelSequenceMenu'     -> 0,
 		];
-
 
 		// startup functions
 		this.makeGUI;
+		// setting the action must be done after the gui is initialized
+		this.makeSequencerAction;
 		
 		postln(this.class.asString ++ " initialized");
 	}
 
+	makeSequencerAction {
+		sequencer.action = { |val|
+			// watch out for problems from scope
+			defer{
+				globalWidgets['locationMarkerArea'].setValueForIndex(activeChannel, val);
+				// push the values to the top-level namespace here
+			};
+		}; 
+	}
+
+	getParam { |param|
+		// trying to clean up the code a little, here. adding a shortcut method
+		// to access the parameter value for the current channel
+		^channelWidgetValues[activeChannel][param];
+	}
+
+	setParam { |param, val|
+		// appropriate setter method
+		channelWidgetValues[activeChannel][param] = val;
+	}
+
 	loadActiveChannel { |channelNum=0|
-		var values;
+		var values, onMove, isRecording;
 		/*********** this is called from the parent, which has a function of the same name */
 		/**
+			This is basically called when the GUI needs updating by adding a channel or
+			clicking on the marker area
 			It is passed the active channel
 			number and performs these actions:
 			 - set the activeChannel member variable for subsequent use by this class
@@ -82,7 +103,17 @@ WFSInterface {
 		channelWidgetValues[activeChannel].keysValuesDo{ |key,val|
 			channelWidgets[key].value = val;
 		};
+		// fill the sequence selection menu with the correct number of entries
+		this.updateSequencerMenu;
+		
+		// prepare for recording if the onMove flag is set
+		onMove = this.getParam('channelRecordModeButton').toBool;
+		isRecording = this.getParam('channelRecordButton').toBool;
 
+		if(onMove && isRecording){
+			sequencer.prepareRecording(activeChannel);
+		};
+		
 	}
 	
 	addChannel {
@@ -102,7 +133,7 @@ WFSInterface {
 			channelCounter = channelCounter + 1;
 
 			// add a set of values to channelWidgetValues
-			channelWidgetValues = channelWidgetValues.add(defaultChannelWidgetValues);
+			channelWidgetValues = channelWidgetValues.add(defaultChannelWidgetValues.copy);
 
 			// add a marker to locationMarkerArea
 			/*
@@ -124,9 +155,12 @@ WFSInterface {
 			channelWidgets['channelDisplay'].items = channelMenuItems;
 
 			// activate the newly created value
-			// going to try to directly call the parent here
 			parent.loadActiveChannel(channelWidgetValues.lastIndex);
 		};
+
+
+		// no matter what, it is okay to call this function
+		sequencer.addChannel;
 
 	}
 
@@ -145,7 +179,7 @@ WFSInterface {
 		// channelWidgetValues is an array of dictionaries, holding values with the same keys
 		// as their GUI counterparts. this simplifies the loadChannel function
 		
-		channelWidgetValues = [defaultChannelWidgetValues];
+		channelWidgetValues = [defaultChannelWidgetValues.copy];
 		
 		// initialize the first channel in the MarkerArea to the value from the number box
 		globalWidgets['locationMarkerArea'].value = [
@@ -185,6 +219,9 @@ WFSInterface {
 				obj.enabled = false;
 				globalWidgets['locationMarkerArea'].enabled = false;
 			};
+
+			// remove the sole corresponding channel from the sequencer
+			sequencer.removeChannel; // use the default argument
 		} // else
 		{
 			// if there is no arg, get the last channel available
@@ -204,19 +241,42 @@ WFSInterface {
 			displayValues.removeAt(chanToKill);
 			channelWidgets['channelDisplay'].items = displayValues;
 
+			// remove the corresponding channel from the sequencer
+			sequencer.removeChannel(chanToKill);
+			
 			// activate the first channel of the project
 			parent.loadActiveChannel(0);
 		};
 
 	}
 
+	sendSequencerData {
+		var isRecording, val;
+		/**
+			send data to the sequencer if recording is enabled on the current channel.
+			note: this includes redundant access of the marker area. I think that the
+			performance hit will be negligible, though.
+		  */
+		
+		isRecording = this.getParam('channelRecordButton').toBool;
+
+		if(isRecording){
+			// I *think* calling getValueForIndex is significantly faster than
+			// taking from the full value of the marker area, unless my test is flawed
+			val = globalWidgets['locationMarkerArea'].getValueForIndex(activeChannel);
+
+			sequencer.addEvent(activeChannel, val);
+		};
+	}
+
 	setSoundLocation { |markerAreaVal|
-		var val, xPos, yPos;
+		var val, isRecording;
 		/**
 			This is called by the MarkerArea. It performs these steps:
 			1 - store the value in the list of Dictionaries containing the interface parameters
 			2 - update the NumberBoxes to reflect the value (from the stored value)
-			3 - push the updated data to the engine
+			3 - push the updated data to the engine (not implemented yet)
+			4 - push the updated data directly to the sequencer
 		*/
 
 		// notice that activeChannel is already set from the activate function. So, this
@@ -224,28 +284,18 @@ WFSInterface {
 		val  = markerAreaVal[activeChannel];
 		
 		// store the value
-		channelWidgetValues[activeChannel]['channelXPositionBox'] = val.x;
-		channelWidgetValues[activeChannel]['channelYPositionBox'] = val.y;
-
+		this.setParam('channelXPositionBox', val.x);
+		this.setParam('channelYPositionBox', val.y);
 		
 		// retrieve it from storage to set the NumberBoxes
-		channelWidgets['channelXPositionBox'].value = channelWidgetValues[activeChannel]['channelXPositionBox'];
-		channelWidgets['channelYPositionBox'].value = channelWidgetValues[activeChannel]['channelYPositionBox'];
-		
+		channelWidgets['channelXPositionBox'].value = this.getParam('channelXPositionBox');
+		channelWidgets['channelYPositionBox'].value = this.getParam('channelYPositionBox');
+
 		// .. and now push the value out to the engine
 		// ... still need to implement this
-	}
 
-	setChannelLabel { |label|
-		var menuItems;
-		/**
-			Stores the custom label for each channel, and change the menu label to match.
-		*/
-		menuItems = channelWidgets['channelDisplay'].items;
-		menuItems[activeChannel] = label;
-		channelWidgets['channelDisplay'].items = menuItems;
-
-		channelWidgetValues[activeChannel]['channelLabel'] = label;
+		// and push the value to the sequencer
+		this.sendSequencerData;
 	}
 
 	setChannelXPosition { |val|
@@ -277,6 +327,9 @@ WFSInterface {
 		globalWidgets['locationMarkerArea'].value = markerVals;
 
 		// push the data to the engine
+
+		// push the data to the sequencer
+		this.sendSequencerData;
 	}
 
 	setChannelYPosition { |val|
@@ -304,13 +357,26 @@ WFSInterface {
 		globalWidgets['locationMarkerArea'].value = markerVals;
 
 		// push the data to the engine
-		// ** maybe both all the MarkerArea updates can call one funtction
-		// dealing with the push stuff later, though
+		// ... not implemented yet
+		// push the data to the sequencer
+		this.sendSequencerData;
 	}
 
+	setChannelLabel { |label|
+		var menuItems;
+		/**
+			Stores the custom label for each channel, and change the menu label to match.
+		*/
+		menuItems = channelWidgets['channelDisplay'].items;
+		menuItems[activeChannel] = label;
+		channelWidgets['channelDisplay'].items = menuItems;
+
+		this.setParam('channelLabel', label);
+	}
+	
 	setChannelVolume { |vol|
 		// store the volume parameter and push the value to the engine
-		channelWidgetValues[activeChannel]['channelVolumeBox'] = vol;
+		this.setParam('channelVolumeBox', vol);
 
 		/*
 			push the value to the engine -- the conversion from db to amp should be handled either
@@ -321,34 +387,67 @@ WFSInterface {
 
 	setChannelAudioSource { |source|
 		// again -- this functionality needs to be implemented in the engine
-		channelWidgetValues[activeChannel]['audioSourceMenu'] = source;
+		this.setParam('audioSourceMenu', source);
 	}
 
-	setChannelRecord { |button|
-		// called from the record book
-		var choice, onMove;
+	setChannelRecord { |val|
+		/**
+			called from the record button
+			- store the channel record flag
+			- start recording if the onMove flag is false
+			- perform the recording stop actions
+		  */
+		var record, onMove;
+
+		this.setParam('channelRecordButton', val);
+		record = this.getParam('channelRecordButton').toBool;
 		
-		onMove = channelWidgetValues[activeChannel]['channelRecordModeButton'].toBool;
+		onMove = this.getParam('channelRecordModeButton').toBool;
 		
-		if(onMove){
-			choice = button.value.toBool;
-			this.startSequencerRecording(choice)
+		case{record && onMove.not}{
+			// initialize the recording
+			sequencer.prepareRecording(activeChannel);
 		}
-	}
-
-	startSequencerRecording { |rec|
-		if(rec){
-			sequencer.startChannelRecording(/* what are the args*/);
-		}{
-			sequencer.stopChannelRecording(/* what are the args */);
+		{record.not}{
+			this.updateSequencerMenu;
 		};
 	}
 
-	setChannelRecordOnMove { |button|
-		// the recordMode is a flag for use locally
-		// the sequencer should not be responsible for the logic of when to start
-		// recording
-		channelWidgetValues[activeChannel]['channelRecordModeButton'] = button.value;
+	setChannelPlay { |val|
+		var play, seq;
+
+		this.setParam('channelPlayButton', val);
+		play = this.getParam('channelPlayButton').toBool;
+
+		seq = this.getParam('channelSequenceMenu');
+		
+		if(play){
+			sequencer.playSequence(activeChannel, seq);
+		}{
+			sequencer.stop; // this is going to need to handle channels next
+		};
+	}
+
+	updateSequencerMenu {
+		var numSeqs;
+		/* perform the cleanup actions -- update the gui, basically */
+		// for now, don't make it possible to name the sequences, maybe that can be added later
+		numSeqs = sequencer.sequences[activeChannel].size;
+
+		channelWidgets['channelSequenceMenu'].items = Array.fill(numSeqs, { |ind|
+			"Sequence " ++ (ind + 1);
+		});
+	}
+
+	setChannelRecordOnMove { |val|
+		// set a flag so that the interface knows when to establish the beginning
+		// of a recording
+		this.setParam('channelRecordModeButton', val);
+	}
+
+	setActiveSequence { |val|
+		// store the value only
+		this.setParam('channelSequenceMenu', val);
 	}
 	
 	makeGUI {
@@ -454,9 +553,6 @@ WFSInterface {
 		globalWidgets = globalWidgets.add(
 			'locationMarkerArea' -> WFSMarkerArea(controlViewWindow, Rect(0, 0, 475, 475))
 			    .canAddMarker_(false)
-			    /*.value_(Array.fill(numChannels, { |ind| // empty to begin with
-					(ind / (numChannels - 1)) @ 0.1
-				}))*/
 			    .mouseDownAction_({ |obj| parent.loadActiveChannel(obj.currentIndex); })
 			    .mouseMoveAction_({ |obj| this.setSoundLocation(obj.value); });
 		);
@@ -550,23 +646,54 @@ WFSInterface {
 		// ** this will hold the list of sequences
 		channelWidgets = channelWidgets.add(
 			'channelSequenceMenu' -> PopUpMenu(transportRow, Rect(0, 0, 0, 20))
-			    .action_({ |obj| postln("set a sequence for channel " ++ activeChannel); });
-		);
-
-		// ** this will allow the user to change the name of the sequences.
-		channelWidgets = channelWidgets.add(
-			'channelSequenceLabel' -> TextField(transportRow, Rect(0, 0, 0, 20))
-			    .value_("blabla");
+			    .action_({ |obj| this.setActiveSequence(obj.value); });
 		);
 		
 		StaticText(transportRow, Rect(0, 0, 0, 20))
 		    .string_("transport")
 		    .stringColor_(Color.white);
-		
+
+
+		// better to avoid abstracting this set of buttons, get rid of this
+		// transport view
+		/*
 		channelWidgets = channelWidgets.add(
 			'channelTransportView' -> WFSVTransportView(transportRow, Rect(0, 0, 0, 180))
 			    .recordAction_({ |obj| this.setChannelRecord(obj) });
+			);*/
+
+		StaticText(transportRow, Rect(0, 0, 0, 80))
+		    .string_("add buttons at the same time as their functions!")
+		    .font_(Font("Arial Narow", 12))
+		    .stringColor_(Color.white);
+
+		channelWidgets = channelWidgets.add(
+			'channelPlayButton' -> Button(transportRow, Rect(0, 0, 0, 20))
+		    .states_([[">", Color.white, Color.black], [">", Color.black, Color.white]])
+		    .font_(Font("Arial Black", 12))
+		    .action_({ |obj|
+				this.setChannelPlay(obj.value);
+			});
 		);
+
+		channelWidgets = channelWidgets.add(
+			'channelStopButton' -> Button(transportRow, Rect(0, 0, 0, 20))
+		        .states_([["[]", Color.white, Color.black]])
+		        .font_(Font("Arial Black", 12))
+		        .action_({ |obj|
+					channelWidgets['channelPlayButton'].valueAction = 0;
+					channelWidgets['channelRecordButton'].valueAction = 0;
+					// -- probably doesn't need its own function
+				});
+		);
+		
+		channelWidgets = channelWidgets.add(
+			'channelRecordButton' -> Button(transportRow, Rect(0, 0, 0, 20))
+			    .states_([["o", Color.red, Color.black], ["o", Color.black, Color.red]])
+			    .font_(Font("Arial Black", 12))
+			    .action_({ |obj| this.setChannelRecord(obj.value) });
+		);
+		
 
 		channelWidgets = channelWidgets.add(
 			'channelRecordModeButton' -> Button(transportRow, Rect(0, 0, 0, 20))
@@ -575,7 +702,7 @@ WFSInterface {
 					["record on move", Color.black, Color.yellow]
 				])
 		        .value_(1)
-		        .action_({ |obj| this.setChannelRecordOnMove(obj) });
+		        .action_({ |obj| this.setChannelRecordOnMove(obj.value) });
 		);
 		
 		// disable the channel controls until a sound source is added

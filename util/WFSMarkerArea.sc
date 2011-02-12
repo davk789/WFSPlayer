@@ -187,6 +187,7 @@ WFSMarkerArea : JSCUserView {
 		scaledVal = val * (this.bounds.width @ this.bounds.height);
 
 		coords[ind] = scaledVal;
+		this.refresh;
 	}
 
 	getValueForIndex { |ind|
