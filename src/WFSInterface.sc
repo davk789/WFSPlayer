@@ -26,10 +26,8 @@ WFSInterface {
 	
 	init_wfsinterface { |par|
 		// member data
-		/* 	get the stuff from the environment -- error handling would be a wise
-			choice in a situation with multiple developers */
-		parent = par; // get reference to the containing class
-		sequencer = parent.sequencer; // create a local represenation of the sequencer
+		parent = par; 
+		sequencer = parent.sequencer;
 
 		globalWidgets = Dictionary();
 		channelWidgets = Dictionary();
@@ -50,19 +48,25 @@ WFSInterface {
 		// startup functions
 		this.makeGUI;
 		// setting the action must be done after the gui is initialized
-		this.makeSequencerAction;
+		this.makeSequencerActions;
 		
 		postln(this.class.asString ++ " initialized");
 	}
 
-	makeSequencerAction {
-		sequencer.action = { |val|
-			// watch out for problems from scope
-			defer{
-				globalWidgets['locationMarkerArea'].setValueForIndex(activeChannel, val);
-				// push the values to the top-level namespace here
+	makeSequencerActions {
+		sequencer.action = { |val, index|
+			// no need to defer the actions here?
+			globalWidgets['locationMarkerArea'].setValueForIndex(index, val);
+			// push the values to the top-level namespace here
+		};
+		
+		sequencer.stopAction = { |index| // any args that need to be passed?
+			channelWidgetValues[index]['channelPlayButton'] = 0;
+			
+			if(index == activeChannel){
+				channelWidgets['channelPlayButton'].value = 0;
 			};
-		}; 
+		};
 	}
 
 	getParam { |param|
@@ -424,10 +428,10 @@ WFSInterface {
 		if(play){
 			sequencer.playSequence(activeChannel, seq);
 		}{
-			sequencer.stop; // this is going to need to handle channels next
+			sequencer.stop(activeChannel);
 		};
 	}
-
+	
 	updateSequencerMenu {
 		var numSeqs;
 		/* perform the cleanup actions -- update the gui, basically */
@@ -448,6 +452,28 @@ WFSInterface {
 	setActiveSequence { |val|
 		// store the value only
 		this.setParam('channelSequenceMenu', val);
+	}
+
+	// global functions
+
+	setGlobalPlay { |val|
+		
+		channelWidgetValues.do{ |obj,ind|
+			var seq;
+
+			obj['channelPlayButton'] = val;
+
+			if(val.toBool){
+				seq = channelWidgetValues[ind]['channelSequenceMenu'];
+				sequencer.playSequence(ind, seq);
+			}{
+				sequencer.stop(ind);
+			};
+
+		};
+
+		channelWidgets['channelPlayButton'].value = val;
+		
 	}
 	
 	makeGUI {
@@ -477,7 +503,7 @@ WFSInterface {
 
 		globalWidgets = globalWidgets.add(
 			'numSpeakersBox' ->	NumberBox(initRow, Rect(0, 0, 0, 20))
-			    .value_(16);
+			     .value_(parent.numChannels); // there, now that top-level value is used :P
 		);
 		
 		StaticText(initRow, Rect(0, 0, 0, 20))
@@ -529,8 +555,32 @@ WFSInterface {
 			.string_("global transport")
 			.stringColor_(Color.white);
 
+		/*
 		globalWidgets = globalWidgets.add(
 			'globalTransportView' -> WFSVTransportView(globalRow, Rect(0, 0, 0, 180));
+		);
+		*/
+
+		StaticText(globalRow, Rect(0, 0, 0, 80))
+			.string_("add controls with functionality")
+			.stringColor_(Color.white);
+
+		globalWidgets = globalWidgets.add(
+			'globalPlayButton' -> Button(globalRow, Rect(0, 0, 0, 20))
+		        .states_([[">", Color.white, Color.black], [">", Color.black, Color.white]])
+		        .font_(Font("Arial Black", 12))
+			    .action_({ |obj| this.setGlobalPlay(obj.value); });
+		);
+				
+		globalWidgets = globalWidgets.add(
+			'globalStopButton' -> Button(globalRow, Rect(0, 0, 0, 20))
+			    .states_([["[]", Color.white, Color.black]])
+		        .font_(Font("Arial Black", 12))
+			    .action_({ |obj|
+					globalWidgets['globalPlayButton'].valueAction = 0;
+					// doesn't exist yet
+					//globalWidgets['globalRecordButton'].valueAction = 0;
+				});
 		);
 				
 		StaticText(globalRow, Rect(0, 0, 0, 20))

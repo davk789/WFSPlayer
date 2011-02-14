@@ -1,11 +1,8 @@
 WFSPreferences {
 	/**
-		this class is responsible for one thing - formatting relevant class data
-		for use with DOMDocument etc. classes.
-
-		For now, this will be tied to the WFSPlayer class, but it might be possible
-		to implement a simple protocol if it is only writing Dictionaries to xml
-		files and loading xml files to dictionaries.
+		Store and retrieve preferences files. 
+		(This will be closely tied to the interface class, but should still
+		be instantiated at the top level.)
 	  */
 	*new {
 		^super.new.init_wfspreferences;

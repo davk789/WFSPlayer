@@ -14,9 +14,10 @@ WFSMixer {
 		currently missing the number of input channels -- this data is only kept in the interface 
 		at the moment -- this data needs to be used by the engine as well
 	*/ 
-	var <>engine;        // has all the audio classes -- sources and mixer channels
+	var <>engine;        // 
 	var <>interface;
 	var <>sequencer;
+	var <>preferences;   // do all of these *really* need read and write prefrences?
 	
 	*new { 
 		^super.new.init_wfsmixer;
@@ -25,13 +26,13 @@ WFSMixer {
 	init_wfsmixer {
 		s = Server.default;
 		
-		// watch for dependency errors
-		sequencer = WFSSequencer(this); // the sequencer is not accessing the parent yet.
-
-		engine = WFSEngine(this); // passing the value from the top-level class
-										 // ** the top-level class may hold the data that passes 
-										 // between interface and engine
-		interface = WFSInterface(this);      //
+		// ** watch for dependency errors
+		preferences = WFSPreferences(); 
+		sequencer = WFSSequencer(); // the sequencer does not access the parent
+		
+		engine = WFSEngine(this);
+		// the "demigod" class. this is where the magic happens.
+		interface = WFSInterface(this);
 
 		// all done, alert the post window
 		postln(this.class.asString ++ " initialized");
@@ -47,10 +48,6 @@ WFSMixer {
 	}
 
 	removeChannel { |chan|
-		if(chan.isNil){
-			// issue a warning for a missing argument
-			error("Channel number argument is needed to remove a channel!")
-		};
 		sequencer.removeChannel(chan);
 		engine.removeChannel(chan);
 		interface.removeChannel(chan);

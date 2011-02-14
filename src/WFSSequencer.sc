@@ -7,14 +7,16 @@ WFSSequencer {
 		- add events -- no filter. the interface class should determine when to record
 		- manage playback for each of these SequenceChannel objects
 		- interface with the presets management
+
+		** time to support multiple simultaneous channels
 	*/
 
 	//var parent; // the top-level environment class
 	var <sequences; // the array of sequences
+	var stopFlags;
 	var clock;
-	var <>action; // the sequencer callback function
+	var <>action, <>stopAction; // the sequencer callback functions
 	var playbackRoutine;
-	var stopFlag=true;
 	
 	*new { |par|
 		^super.new.init_wfssequencer(par);
@@ -29,7 +31,7 @@ WFSSequencer {
 			    [ // channel 1
 			         [ // array of sequences
 			              1 /* starting time of recording */,
-			              Array[/*subsequent timestamps*/2, 3, 4, etc.]
+			              Array[/*subsequent timestamp/value pairs*/],
 			         ], ...etc...
 			    ],
 		      	... channel 2, etc
@@ -37,7 +39,12 @@ WFSSequencer {
 		  */
 
 		action = {};
+		/*
+			still not sure what the best storage for the params and the stop flags would
+			be, but this works well enough for now.
+		*/
 		sequences = Array();
+		stopFlags = Array(); 
 		clock = TempoClock(1); // is this the clock that I want to use?
 		//parent = par; // this would be a place for error handling under other circumstances
 
@@ -47,6 +54,7 @@ WFSSequencer {
 	addChannel {
 		// this is called when the WFSInterface:addChannel is called
 		sequences = sequences.add(Array());
+		stopFlags = stopFlags.add(false);
 	}
 
 	removeChannel { |chan|
@@ -59,6 +67,7 @@ WFSSequencer {
 		chanToKill = chan ?? { sequences.lastIndex };
 		
 		sequences.removeAt(chanToKill);
+		stopFlags.removeAt(chanToKill)
 	}
 
 	// record functions
@@ -82,8 +91,6 @@ WFSSequencer {
 
 		startTime = sequences[chan][seq][0];
 		sequence = sequences[chan][seq][1];
-		// currentSeq[0] has the start time of the recording, and
-		// currentSeq[1] has subsequent timestamp value pairs
 		
 		clock.sched(0, {
 			var wait;
@@ -91,28 +98,28 @@ WFSSequencer {
 			case{index == 0}{
 				wait = sequence[index][0] - startTime;
 			}
-			{(index == sequence.lastIndex) || stopFlag}{
+			{(index == sequence.lastIndex) || stopFlags[chan]}{
 				wait = nil;
 			}{
 				wait = sequence[index][0] - sequence[index - 1][0];
 			};
 
-			stopFlag = false;
+			stopFlags[chan] = false;
 			
 			// ** playback action **
-			action.value(sequence[index][1]);
-			// ** ** ** ** ** ** **
+			action.value(sequence[index][1], chan);
 
+			if(wait.isNil){
+				stopAction.value(chan); // execute cleanup code
+			};
+			
 			index = index + 1;
-			["inside sequencer", sequence[index][1], wait].postln;
 			wait; // stupid implicit returns
 		});
 
 	}
 
-	stop {
-		stopFlag = true;
+	stop { |channel|
+		stopFlags[channel] = true;
 	}
-
-	
 }
