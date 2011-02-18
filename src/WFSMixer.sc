@@ -25,17 +25,34 @@ WFSMixer {
 	
 	init_wfsmixer {
 		s = Server.default;
-		
-		// ** watch for dependency errors
-		preferences = WFSPreferences(); 
-		sequencer = WFSSequencer(); // the sequencer does not access the parent
-		
-		engine = WFSEngine(this);
-		// the "demigod" class. this is where the magic happens.
-		interface = WFSInterface(this);
 
+		preferences = WFSPreferences();		
+		sequencer = WFSSequencer();
+		engine = WFSEngine();
+		// the "demigod" class
+		interface = WFSInterface();
+		
+		// pass the environment to relevant objects after everything is initialized
+		// this will avoid cdependency issues
+		this.initializeDeferred;
+		
 		// all done, alert the post window
 		postln(this.class.asString ++ " initialized");
+	}
+
+	initializeDeferred {
+		/**
+			load all member data that refers to other parts of the project. This \
+			deferred loading will avoid dependency errors.
+		*/
+
+		preferences.getEnvironment(this); // doesn't use the environment yet but will soon
+		//sequencer.getEnvironment(this); // sequencer doesn't need the environment
+		//engine.getEnvironment(this); // engine does not use the environment yet
+		interface.getEnvironment(this);
+		// initialize local representation of the environment for the objects
+		interface.initDeferred;
+		preferences.initDeferred;
 	}
 
 	// I see a pattern forming -- call the parent for functions that are replicated
