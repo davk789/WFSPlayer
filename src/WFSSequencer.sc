@@ -1,4 +1,4 @@
-WFSSequencer {
+WFSSequencer : WFSObject {
 	/** 
 		WFSSequencer: this is a top-level sequence manager.
 		it will do these things --
@@ -11,18 +11,17 @@ WFSSequencer {
 		** time to support multiple simultaneous channels
 	*/
 
-	//var parent; // the top-level environment class
 	var <sequences; // the array of sequences
 	var stopFlags;
 	var clock;
 	var <>action, <>stopAction; // the sequencer callback functions
 	var playbackRoutine;
 	
-	*new { |par|
-		^super.new.init_wfssequencer(par);
+	*new {
+		^super.new.init_wfssequencer;
 	}
 
-	init_wfssequencer { |par| 
+	init_wfssequencer {
 		/**
 			
 			the schema of the array should be as follows:
@@ -46,7 +45,6 @@ WFSSequencer {
 		sequences = Array();
 		stopFlags = Array(); 
 		clock = TempoClock(1); // is this the clock that I want to use?
-		//parent = par; // this would be a place for error handling under other circumstances
 
 		postln(this.class.asString ++ " initialized");
 	}

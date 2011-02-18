@@ -1,4 +1,4 @@
-WFSInterface {
+WFSInterface : WFSObject {
 	/**
 		WFSInterface -- This class serves these purposes:
 		 - container for the GUI widgets
@@ -9,26 +9,23 @@ WFSInterface {
 
 	var activeChannel=0;    // index of the active source channel
 	var channelCounter=0;   // counter value for use with the channel display only
-	var parent;
 	var sequencer;
-
+	var prefManager; // it's called 'preferences' on the top
 	// GUI elements
 	var controlViewWindow, initRow, globalRow, channelRow, transportRow; // containers for contolViewWidgets
 	var globalWidgets, channelWidgets; // all gui elements are kept in a Dict for easy access
 
 	// parameter defaults and storage
 	var defaultChannelWidgetValues;
-	var channelWidgetValues;
+	var <channelWidgetValues; // used by the preference manager
 
-	*new { |par|
-		^super.new.init_wfsinterface(par);
+	*new {
+		^super.new.init_wfsinterface;
 	}
 	
-	init_wfsinterface { |par|
+	init_wfsinterface {
 		// member data
-		parent = par; 
-		sequencer = parent.sequencer;
-
+		
 		globalWidgets = Dictionary();
 		channelWidgets = Dictionary();
 		defaultChannelWidgetValues =  Dictionary[
@@ -45,12 +42,20 @@ WFSInterface {
 			'channelSequenceMenu'     -> 0,
 		];
 
+		
+		postln(this.class.asString ++ " initialized");
+	}
+
+	initDeferred {
+		sequencer = parent.sequencer;
+		prefManager = parent.preferences;
+
 		// startup functions
+		// this relies on the sequencer, so, put it in initDeferred
 		this.makeGUI;
 		// setting the action must be done after the gui is initialized
 		this.makeSequencerActions;
-		
-		postln(this.class.asString ++ " initialized");
+
 	}
 
 	makeSequencerActions {
@@ -475,7 +480,7 @@ WFSInterface {
 		channelWidgets['channelPlayButton'].value = val;
 		
 	}
-	
+
 	makeGUI {
 		var scrollingNBColor = Color.new255(255, 255, 200);
 
@@ -489,14 +494,20 @@ WFSInterface {
 		
 		globalWidgets = globalWidgets.add(
 			'presetSaveButton' -> Button(initRow, Rect(0, 0, 0, 20))
-			    .states_([["save", Color.white, Color.new255(150, 150, 255, 200)]]);
+			    .states_([["save", Color.white, Color.new255(150, 150, 255, 200)]])
+			    .action_({ prefManager.save; }); // this needs to allow for custom file names
 		);
-		
+
+		globalWidgets = globalWidgets.add(
+			'presetListMenu' -> PopUpMenu(initRow, Rect(0, 0, 0, 20))
+			    .items_(prefManager.getPresetList);
+		);
+				
 		globalWidgets = globalWidgets.add(
 			'presetLoadButton' -> Button(initRow, Rect(0, 0, 0, 20))
 			    .states_([["load", Color.white, Color.new255(150, 150, 255, 200)]]);
 		);		
-	
+
 		StaticText(initRow, Rect(0, 0, 0, 20))
 			.string_("number of speakers")
 			.stringColor_(Color.white);

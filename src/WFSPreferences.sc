@@ -1,26 +1,129 @@
-WFSPreferences {
+WFSPreferences : WFSObject {
 	/**
 		Store and retrieve preferences files. 
-		(This will be closely tied to the interface class, but should still
-		be instantiated at the top level.)
+
+		there is a helpful explanation of DOMDocument at:
+		http://swiki.hfbk-hamburg.de:8888/MusicTechnology/747
 	  */
+	// this class will probably be called from the top level and get data
+	// from the interface and the sequencer, so it will need the parent, I think
+	var presetRoot;
+	var sequencer, interface;
 	*new {
 		^super.new.init_wfspreferences;
 	}
 
 	init_wfspreferences {
-		postln(this.class.asString ++ " initialized");
+		// maybe move this to a different location later
+		presetRoot = Platform.userAppSupportDir ++  "/Extensions/WFSPlayer/prefs/";
+		
+
 	}
 
-	storeDefault {
-		// store a single value for persistent configuration data
+	initDeferred {
+		sequencer = parent.sequencer;
+		interface = parent.interface;
+	}
+	
+	readPrefFile { |filename|
+		var doc;
+		doc = DOMDocument(presetRoot ++ filename ++ ".xml");
+
+		doc.getDocumentElement.getElementsByTagName("param").do{ |tag, index|
+			// do something here
+			postln([tag.getAttribute("id"), tag.getText]);
+		};
+		
 	}
 
-	storePreset {
-		// store preset file -- i.e. all the data in the class
-	}
+	save { |filename|
+		/**
+			Format DOM data and write to an xml file. This might be good to refactor later.
+		*/
+		var doc;
+		var root;
+		var channelRoot;
+		var sequenceRoot;
+		var outFile, outFileName;
 
-	retrievePreset {
-		// retrieve preset
+		doc = DOMDocument();
+
+		root = doc.createElement("wfsplayer-data");
+		doc.appendChild(root);
+
+		// channel params
+		
+		channelRoot = doc.createElement("channelParams");
+		root.appendChild(channelRoot);
+
+		interface.channelWidgetValues.do{ |params, ind|
+			var chanTag;
+
+			chanTag = doc.createElement("channel");
+			chanTag.setAttribute("number", ind.asString);
+
+			channelRoot.appendChild(chanTag);
+
+			params.keysValuesDo{ |key, val|
+				var textVal, paramTag;
+				paramTag = doc.createElement("param");
+				paramTag.setAttribute("id", key.asString);
+				textVal = doc.createTextNode(val.asString);
+
+				paramTag.appendChild(textVal);
+				chanTag.appendChild(paramTag);
+			};
+			
+		};
+
+		// global params
+
+		// sequencer data
+		sequenceRoot = doc.createElement("sequences");
+		root.appendChild(sequenceRoot);
+		
+		sequencer.sequences.do{ |channel, ind|
+			var chanTag;
+			
+			chanTag = doc.createElement("channel");
+			chanTag.setAttribute("number", ind.asString);
+
+			sequenceRoot.appendChild(chanTag);
+
+			channel.do{ |seq,i|
+				var seqTag, startTag, dataTag, startVal, dataVal;
+				
+				seqTag = doc.createElement("sequence");
+				seqTag.setAttribute("number", i.asString);
+				chanTag.appendChild(seqTag);
+
+				startTag = doc.createElement("startTime");
+				startVal = doc.createTextNode(seq[0].asString);
+				startTag.appendChild(startVal);
+				seqTag.appendChild(startTag);
+				
+				dataTag = doc.createElement("data");
+				dataVal = doc.createTextNode(seq[1].asInfString);
+				dataTag.appendChild(dataVal);
+				seqTag.appendChild(dataTag);
+
+			};
+		};
+		
+		// write the file
+		outFileName = filename ?? { Date.localtime.stamp };
+		outFile = File(presetRoot ++ outFileName ++ ".xml", "w+");
+		doc.write(outFile);
+		outFile.close;
+	}
+	
+	getPresetList {
+		var paths;
+		
+		paths = pathMatch(presetRoot ++ "*.xml");
+
+		^paths.collect{ |obj, ind|
+			obj.split($/).last; // might want to strip off the file extension later
+		};
 	}
 }

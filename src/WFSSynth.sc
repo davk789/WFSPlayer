@@ -1,4 +1,4 @@
-WFSEngine {
+WFSEngine : WFSObject {
 	/**
 		Container class for the synth channels. Inside this class, "channel" refers to 
 		sound source, rather than speaker channel. Not to be confused with the top-level
@@ -12,17 +12,14 @@ WFSEngine {
 		 - manage the mixer SyntDef used by the WFSSynthChannels
 	  */
 
-	var parent; // reference to the enclosing class
 	var numChannels=16; // number of output channels
 	var channels;       // container array for the WFSSynthChannel classes
 
-	*new { |par|
-		^super.new.init_wfsengine(par);
+	*new {
+		^super.new.init_wfsengine;
 	}
 
-	init_wfsengine { |par|
-		// init member data
-		parent = par;
+	init_wfsengine {
 		
 		// startup functions
 		this.loadSynthChannels(numChannels);
