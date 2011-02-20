@@ -1,110 +1,33 @@
 
-WFSMixer is instantiated by running the command: WFSMixer();
-all parameters should be set and retrieved from save and preference files.
-
-
 WFSMixer -- an audio mixer that implements Wavefront Synthesis to spatialize sound along
 a 2 dimensional plane. This will be able to mix external signals, along with custom 
 SynthDefs that can be loaded with this set of SuperCollider classes.
 
+Installation:
 
+With git, run this command from the command line:
 
-////////////////////////////////////////
-***** notes:
+git clone git://github.com/davk789/WFSPlayer.git WFSPlayer
 
-/////// sequencer notes:
+Notes:
 
-the sequencer will need to hold this data:
-***timestamp
- the timestamp, when recorded, will be the time that the event was triggered, 
- after the recording started. So, the playback sequence will need to subtract the 
- next value from the last value played. I don't think there will be anything more 
- complicated than that, right?
+WFSMixer depends on the XML Quarks package, and SwingOSC.
 
-*data:
- the location of the point in space -- the playback will move the location here
- the source channel being affected -- I made it possible to move single points
-  in the marker area in order to facilitiate this.
-   ... but how do I get this value? there are two ways to do this -- index in to an
-       array, or a unique identifier in a Dictionary. because source channels can be 
-       added and removed at will, then it is probably better to refer to an ID. The
-       MarkerArea uses indexes, so I would need to implement a conversion algorithm, 
-       or else change the MarkerArea to use Dictionaries -- I think the former is a
-	   better idea
+It is possible to use WFSMixer with the Cocoa GUI. Simply alter the classes in the 
+following project files, to inherit from the Cocoa counterparts to the SwingOSC classes
+WFSMarkerArea, and WFSScrollingNumberBox.
+
+util/WFSMarkerArea.sc
+util/WFSScrollingNumberBox.sc
 
 
 
-//////
 
-a big part of this work will involve translating user parameters to the raw delay times
-that will be set on each channel.
+*********** notes ***********
 
-
-Global Controls:
-'presetSaveButton'
-'presetLoadButton'
-'numSpeakersBox'
-'speakerSpacingBox'
-'airTempBox'
-'roomWidthBox'
-'roomDepthBox'
-'globalPlayButton'
-'globalPauseButton'
-'globalStopButton'
-'globalRecordButton'
-'masterVolumeBox'
-'editBypassButton'
-'locationMarkerArea'
-
-Per-channel controls
-'audioSourceMenu'
-'channelPlayButton'
-'channelPauseButton'
-'channelStopButton'
-'channelRecordButton'
-'channelSequenceClearButton'
-'channelLoopButton'
-'channelVolumeBox'
-'channelXPositionBox'
-'channelYPositionBox'
-'channelSaveButton'
-
-
-GUI Parameters:
-'inBus' // internal mixer stuff
-'outBus' // internal mixer stuff
-'delayTime' // to be set from the parameter controls, translated from x, y
-			// and making use of the room dimensions
-'lev'		//  simple parameter setting
-'i_maxDelay' // simple parameter setting
-
-
-Synth Parameters:
-number of speakers
-spacing (inches)
-air temerature
-room temp
-room depth -- this would be the maximum delay
-master volume
-channel volume
-channel x
-channel y
-
-
-Sequencer parameters:
-global play
-global pause
-global stop
-glopal record
-global save
-global load
-global clear sequence
-global loop ?
-channel play
-channel pause
-channel stop
-channel record
-channel save
-channel load
-channel clear sequence
-channel loop sequence
+TODO:
+implement audio features in the gui
+provide methods to integrate custom audio code
+maybe add mixer view and effects inserts
+add drawing/algorithmic sequencing features
+add vertical placement of audio signals
