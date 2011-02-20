@@ -77,7 +77,8 @@ WFSPreferences : WFSObject {
 		};
 
 		// global params
-
+		// ... nothing here yet
+		
 		// sequencer data
 		sequenceRoot = doc.createElement("sequences");
 		root.appendChild(sequenceRoot);
@@ -86,7 +87,7 @@ WFSPreferences : WFSObject {
 			var chanTag;
 			
 			chanTag = doc.createElement("channel");
-			chanTag.setAttribute("number", ind.asString);
+			//chanTag.setAttribute("number", ind.asString);
 
 			sequenceRoot.appendChild(chanTag);
 
@@ -125,5 +126,44 @@ WFSPreferences : WFSObject {
 		^paths.collect{ |obj, ind|
 			obj.split($/).last; // might want to strip off the file extension later
 		};
+	}
+
+	loadPreset { |filename|
+		var doc;
+		var paramData, currentParam;
+		var outParams = Array();
+		
+		doc = DOMDocument(presetRoot ++ filename);
+
+		// get channelWidgetValues;
+		
+		paramData = doc.getDocumentElement.getElement("channelParams").getFirstChild;
+
+		while{ paramData.notNil }{
+			var outDict = Dictionary();
+			
+			paramData.getChildNodes.do{ |node|
+				var val = node.getText.asString;
+
+				// nasty workaround for a nasty bug -- single digit matches fail
+				// with my build of SC, so, append a 0 to all tests
+				// *** watch for bugs with different builds/platforms ***
+				if("^-?[0-9]*\\.?[0-9]+\$".matchRegexp(val ++ "0")){
+					val = val.asFloat;
+				};
+
+				outDict = outDict.add(node.getAttribute("id").asSymbol -> val);
+			};
+
+			outParams = outParams.add(outDict);
+
+			paramData = paramData.getNextSibling;
+		};
+
+		
+		// get sequence data
+
+		^[outParams, "I will have the sequences later."]
+		
 	}
 }

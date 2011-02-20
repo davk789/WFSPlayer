@@ -76,6 +76,18 @@ WFSMixer {
 		engine.loadActiveChannel(chan);
 		interface.loadActiveChannel(chan);
 	}
+
+	loadPreset { |filename|
+		var values;
+		/*
+			get the stored values, and then pass them to the sequencer and the interface. The
+			naming here might be confusing, since this breaks the pattern of simply passing
+			along the same call to the other objects, so some renaming might be in order here.
+		*/
+		values = preferences.loadPreset(filename);
+		sequencer.loadPreset(values[1]); 
+		interface.loadPreset(values[0]); // interface depends on the sequencer for menu data
+	}
 	
 }
 

@@ -5,7 +5,10 @@ WFSInterface : WFSObject {
 		 - perform actions to send to the engine -- including unit conversions
 		 - store the parameter data in the running class
 		   (there may need to be a separate preset class to read and write preferences)
-	  */
+
+		BUGS: the channel label is not being set to display the channel name by default
+
+	*/
 
 	var activeChannel=0;    // index of the active source channel
 	var channelCounter=0;   // counter value for use with the channel display only
@@ -112,6 +115,7 @@ WFSInterface : WFSObject {
 		channelWidgetValues[activeChannel].keysValuesDo{ |key,val|
 			channelWidgets[key].value = val;
 		};
+		
 		// fill the sequence selection menu with the correct number of entries
 		this.updateSequencerMenu;
 		
@@ -166,11 +170,6 @@ WFSInterface : WFSObject {
 			// activate the newly created value
 			parent.loadActiveChannel(channelWidgetValues.lastIndex);
 		};
-
-
-		// no matter what, it is okay to call this function
-		sequencer.addChannel;
-
 	}
 
 	initializeChannels {
@@ -481,6 +480,50 @@ WFSInterface : WFSObject {
 		
 	}
 
+	savePreset {
+		prefManager.save;
+		globalWidgets['presetListMenu'].items = prefManager.getPresetList;
+	}
+
+	loadPreset { |data|
+		var values;
+		/*
+			get an array containing:
+			[
+			channelWidgetValues,
+			sequenceData
+			]
+			... and later any global data that might be necessary
+		*/
+
+		// gather the data
+		data.postln;
+		channelWidgetValues = data;
+
+		parent.loadActiveChannel(0);
+		
+		// update the interface
+		// probably no need to avoid iterating twice here, even though it's not the most efficient
+		channelWidgetValues[activeChannel].do{ |obj| obj.postln };
+
+		channelWidgets['channelDisplay'].items = channelWidgetValues.collect{ |obj|
+			obj['channelLabel'];
+		};
+
+		globalWidgets['locationMarkerArea'].value = channelWidgetValues.collect{ |obj|
+			obj['channelXPositionBox'] @ obj['channelYPositionBox'];
+		};
+
+		channelWidgets['channelSequenceMenu'].items = Array.fill(4, {
+			"I'm not implemented yet";
+		});
+
+		channelWidgets.do{ |obj|
+			obj.enabled = true;
+		};
+		
+	}
+
 	makeGUI {
 		var scrollingNBColor = Color.new255(255, 255, 200);
 
@@ -495,7 +538,7 @@ WFSInterface : WFSObject {
 		globalWidgets = globalWidgets.add(
 			'presetSaveButton' -> Button(initRow, Rect(0, 0, 0, 20))
 			    .states_([["save", Color.white, Color.new255(150, 150, 255, 200)]])
-			    .action_({ prefManager.save; }); // this needs to allow for custom file names
+			    .action_({ this.savePreset; });
 		);
 
 		globalWidgets = globalWidgets.add(
@@ -505,7 +548,8 @@ WFSInterface : WFSObject {
 				
 		globalWidgets = globalWidgets.add(
 			'presetLoadButton' -> Button(initRow, Rect(0, 0, 0, 20))
-			    .states_([["load", Color.white, Color.new255(150, 150, 255, 200)]]);
+			    .states_([["load", Color.white, Color.new255(150, 150, 255, 200)]])
+			    .action_({ parent.loadPreset(globalWidgets['presetListMenu'].item); });
 		);		
 
 		StaticText(initRow, Rect(0, 0, 0, 20))

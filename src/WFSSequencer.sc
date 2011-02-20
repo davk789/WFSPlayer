@@ -53,6 +53,7 @@ WFSSequencer : WFSObject {
 		// this is called when the WFSInterface:addChannel is called
 		sequences = sequences.add(Array());
 		stopFlags = stopFlags.add(false);
+		postln("I have this number of sequences in WFSSequencer:sequences: " ++ sequences.size);
 	}
 
 	removeChannel { |chan|
@@ -119,5 +120,10 @@ WFSSequencer : WFSObject {
 
 	stop { |channel|
 		stopFlags[channel] = true;
+	}
+
+	loadPreset { |sequence|
+		// it might be okay just to use a synthesized setter method here
+		postln("getting the saved sequence! " ++ sequence);
 	}
 }
