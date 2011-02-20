@@ -486,15 +486,7 @@ WFSInterface : WFSObject {
 	}
 
 	loadPreset { |data|
-		var values;
-		/*
-			get an array containing:
-			[
-			channelWidgetValues,
-			sequenceData
-			]
-			... and later any global data that might be necessary
-		*/
+		var values, numSequences;
 
 		// gather the data
 		data.postln;
@@ -504,7 +496,6 @@ WFSInterface : WFSObject {
 		
 		// update the interface
 		// probably no need to avoid iterating twice here, even though it's not the most efficient
-		channelWidgetValues[activeChannel].do{ |obj| obj.postln };
 
 		channelWidgets['channelDisplay'].items = channelWidgetValues.collect{ |obj|
 			obj['channelLabel'];
@@ -514,8 +505,13 @@ WFSInterface : WFSObject {
 			obj['channelXPositionBox'] @ obj['channelYPositionBox'];
 		};
 
-		channelWidgets['channelSequenceMenu'].items = Array.fill(4, {
-			"I'm not implemented yet";
+		globalWidgets['locationMarkerArea'].enabled = true;
+
+		channelCounter = channelWidgetValues.size;
+
+		numSequences = sequencer.sequences[activeChannel].size;
+		channelWidgets['channelSequenceMenu'].items = Array.fill(numSequences, { |ind|
+			"Sequence " ++ (ind + 1);
 		});
 
 		channelWidgets.do{ |obj|

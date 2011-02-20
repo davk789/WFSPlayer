@@ -123,7 +123,13 @@ WFSSequencer : WFSObject {
 	}
 
 	loadPreset { |sequence|
-		// it might be okay just to use a synthesized setter method here
-		postln("getting the saved sequence! " ++ sequence);
+		// stop any playing sequences
+		stopFlags.size.do{ |ind|
+			stopFlags[ind] = true;
+		};
+
+		sequences = sequence;
+		stopFlags = Array.fill(sequences.size, { true; });
+
 	}
 }

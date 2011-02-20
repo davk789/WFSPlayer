@@ -60,7 +60,7 @@ WFSPreferences : WFSObject {
 			var chanTag;
 
 			chanTag = doc.createElement("channel");
-			chanTag.setAttribute("number", ind.asString);
+			//chanTag.setAttribute("number", ind.asString);
 
 			channelRoot.appendChild(chanTag);
 
@@ -87,7 +87,7 @@ WFSPreferences : WFSObject {
 			var chanTag;
 			
 			chanTag = doc.createElement("channel");
-			//chanTag.setAttribute("number", ind.asString);
+			chanTag.setAttribute("number", ind.asString);
 
 			sequenceRoot.appendChild(chanTag);
 
@@ -132,6 +132,8 @@ WFSPreferences : WFSObject {
 		var doc;
 		var paramData, currentParam;
 		var outParams = Array();
+		var sequenceData;
+		var outSequences = Array();
 		
 		doc = DOMDocument(presetRoot ++ filename);
 
@@ -160,10 +162,30 @@ WFSPreferences : WFSObject {
 			paramData = paramData.getNextSibling;
 		};
 
-		
 		// get sequence data
 
-		^[outParams, "I will have the sequences later."]
+		sequenceData = doc.getDocumentElement.getElement("sequences").getFirstChild;
+
+		while{sequenceData.notNil}{
+			var sequenceArr = Array();
+			
+			sequenceData.getChildNodes.do{ |sequenceNode|
+				var dataArr = Array();
+
+				sequenceNode.getChildNodes.do{ |dataNode|
+					var data = dataNode.getText.asString.interpret;
+					dataArr = dataArr.add(data);
+				};
+
+				sequenceArr = sequenceArr.add(dataArr);
+			};
+
+			outSequences = outSequences.add(sequenceArr);
+			
+			sequenceData = sequenceData.getNextSibling;
+		};
+		
+		^[outParams, outSequences];
 		
 	}
 }
