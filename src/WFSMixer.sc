@@ -29,7 +29,6 @@ WFSMixer {
 		preferences = WFSPreferences();		
 		sequencer = WFSSequencer();
 		engine = WFSEngine();
-		// the "demigod" class
 		interface = WFSInterface();
 		
 		// pass the environment to relevant objects after everything is initialized
@@ -54,9 +53,6 @@ WFSMixer {
 		interface.initDeferred;
 		preferences.initDeferred;
 	}
-
-	// I see a pattern forming -- call the parent for functions that are replicated
-	// in all of the other classes
 	
 	addChannel {
 		sequencer.addChannel;
@@ -71,19 +67,14 @@ WFSMixer {
 	}
 	
 	loadActiveChannel { |chan|
-		// jump up to container classes, and then call the subordinate classes'
-		// respective loadActiveChannel() functions
 		engine.loadActiveChannel(chan);
 		interface.loadActiveChannel(chan);
 	}
 
 	loadPreset { |filename|
 		var values;
-		/*
-			get the stored values, and then pass them to the sequencer and the interface. The
-			naming here might be confusing, since this breaks the pattern of simply passing
-			along the same call to the other objects, so some renaming might be in order here.
-		*/
+		// this breaks the pattern of simply making the same call across the various
+		// subordinate classes. re-name the methods here?
 		values = preferences.loadPreset(filename);
 		sequencer.loadPreset(values[1]); 
 		interface.loadPreset(values[0]); // interface depends on the sequencer for menu data

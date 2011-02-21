@@ -17,4 +17,29 @@ WFSObject {
 		/* pass the enclosing envronment to the object */
 		parent = par;
 	}
+
+	// maybe throw subclassResponsibility errors later, for now, allow execution to
+	// continue hitting this error
+	
+	loadPreset {
+		warn(thisMethod.asString ++ " should have been implemented by " ++ this.class.asString);
+		^nil;
+	}
+	
+	// channel update methods to be called from the top-level class
+
+	addChannel {
+		warn(thisMethod.asString ++ " should have been implemented by " ++ this.class.asString);
+		^nil;
+	}
+
+	removeChannel {
+		warn(thisMethod.asString ++ " should have been implemented by " ++ this.class.asString);
+		^nil;
+	}
+
+	loadActiveChannel {
+		warn(thisMethod.asString ++ " should have been implemented by " ++ this.class.asString);
+		^nil;
+	}
 }
