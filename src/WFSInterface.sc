@@ -6,21 +6,17 @@ WFSInterface : WFSObject {
 		 - store the parameter data in the running class
 		   (there may need to be a separate preset class to read and write preferences)
 
-		BUGS: the channel label is not being set to display the channel name by default
-
 	*/
 
 	var activeChannel=0;    // index of the active source channel
 	var channelCounter=0;   // counter value for use with the channel display only
-	var sequencer;
-	var prefManager; // it's called 'preferences' on the top
 	// GUI elements
 	var controlViewWindow, initRow, globalRow, channelRow, transportRow; // containers for contolViewWidgets
 	var globalWidgets, channelWidgets; // all gui elements are kept in a Dict for easy access
 
 	// parameter defaults and storage
 	var defaultChannelWidgetValues;
-	var <channelWidgetValues; // used by the preference manager
+	var <channelWidgetValues, <globalWidgetValues; // used by the preference manager
 
 	*new {
 		^super.new.init_wfsinterface;
@@ -31,6 +27,13 @@ WFSInterface : WFSObject {
 		
 		globalWidgets = Dictionary();
 		channelWidgets = Dictionary();
+		globalWidgetValues = Dictionary[
+			'numSpeakersBox'  -> 16,
+			'airTempBox'      -> 75,
+			'roomWidthBox'    -> 25,
+			'roomDepthBox'    -> 35,
+			'masterVolumeBox' -> -6,
+		];
 		defaultChannelWidgetValues =  Dictionary[
 		    'channelLabel'            -> ("Channel " ++ channelCounter),
 			'audioSourceMenu'         -> 0, 
@@ -49,15 +52,16 @@ WFSInterface : WFSObject {
 		postln(this.class.asString ++ " initialized");
 	}
 
-	initDeferred {
-		sequencer = parent.sequencer;
-		prefManager = parent.preferences;
-
+	initDeferred {		
 		// startup functions
 		// this relies on the sequencer, so, put it in initDeferred
 		this.makeGUI;
 		// setting the action must be done after the gui is initialized
 		this.makeSequencerActions;
+
+		globalWidgetValues.keysValuesDo{ |key,val|
+			globalWidgets[key].value = val;
+		}
 
 	}
 
@@ -147,7 +151,7 @@ WFSInterface : WFSObject {
 
 			// add a set of values to channelWidgetValues
 			channelWidgetValues = channelWidgetValues.add(defaultChannelWidgetValues.copy);
-
+			channelWidgetValues.last['channelLabel'] = ("Channel " ++ channelCounter);
 			// add a marker to locationMarkerArea
 			/*
 				this always adds the new point to a single location (0.1 @ 0.1). it may be nice
@@ -188,6 +192,8 @@ WFSInterface : WFSObject {
 		// as their GUI counterparts. this simplifies the loadChannel function
 		
 		channelWidgetValues = [defaultChannelWidgetValues.copy];
+		channelWidgetValues.first['channelLabel'] = ("Channel " ++ channelCounter);
+		
 		
 		// initialize the first channel in the MarkerArea to the value from the number box
 		globalWidgets['locationMarkerArea'].value = [
@@ -460,24 +466,28 @@ WFSInterface : WFSObject {
 
 	// global functions
 
-	setGlobalPlay { |val|
+	setGlobalPlay {
 		
 		channelWidgetValues.do{ |obj,ind|
 			var seq;
 
-			obj['channelPlayButton'] = val;
+			obj['channelPlayButton'] = 1;
 
-			if(val.toBool){
-				seq = channelWidgetValues[ind]['channelSequenceMenu'];
-				sequencer.playSequence(ind, seq);
-			}{
-				sequencer.stop(ind);
-			};
-
+			seq = channelWidgetValues[ind]['channelSequenceMenu'];
+			sequencer.playSequence(ind, seq);
 		};
 
-		channelWidgets['channelPlayButton'].value = val;
+		channelWidgets['channelPlayButton'].value = 1;
 		
+	}
+
+	setGlobalStop {
+		channelWidgetValues.do{ |obj,ind|
+			obj['channelPlayButton'] = 0;
+			sequencer.stop(ind);
+		};
+
+		channelWidgets['channelPlayButton'].value = 0;
 	}
 
 	savePreset {
@@ -485,18 +495,23 @@ WFSInterface : WFSObject {
 		globalWidgets['presetListMenu'].items = prefManager.getPresetList;
 	}
 
-	loadPreset { |data|
+	loadPreset { |data, globalData|
 		var values, numSequences;
 
 		// gather the data
 		data.postln;
 		channelWidgetValues = data;
+		globalWidgetValues = globalData;
 
 		parent.loadActiveChannel(0);
 		
 		// update the interface
 		// probably no need to avoid iterating twice here, even though it's not the most efficient
 
+		globalWidgetValues.keysValuesDo{ |key, val|
+			globalWidgets[key].value = val;
+		};
+		
 		channelWidgets['channelDisplay'].items = channelWidgetValues.collect{ |obj|
 			obj['channelLabel'];
 		};
@@ -520,6 +535,32 @@ WFSInterface : WFSObject {
 		
 	}
 
+	// global param stuff
+
+	setNumSpeakers { |num|
+		globalWidgetValues['numSpeakersBox'] = num;
+		// try sending directly to the engine
+		parent.numChannels = globalWidgetValues['numSpeakersBox'];
+	}
+
+	setAirTemp { |temp|
+		globalWidgetValues['airTempBox'] = temp;
+	}
+	
+	setRoomWidth { |width|
+		globalWidgetValues['roomWidthBox'] = width;
+	}
+
+	setRoomDepth { |depth|
+		globalWidgetValues['roomDepthBox'] = depth;
+	}
+
+	setMasterVolume { |vol|
+		globalWidgetValues['masterVolumeBox'] = vol;		
+	}
+
+	// barf the gui
+	
 	makeGUI {
 		var scrollingNBColor = Color.new255(255, 255, 200);
 
@@ -554,10 +595,14 @@ WFSInterface : WFSObject {
 
 		globalWidgets = globalWidgets.add(
 			'numSpeakersBox' ->	NumberBox(initRow, Rect(0, 0, 0, 20))
-			     .value_(parent.numChannels); // there, now that top-level value is used :P
+			     .value_(parent.numChannels) // there, now that top-level value is used :P
+			     .action_({ |obj| this.setNumSpeakers(obj.value) });
 		);
 		
-		StaticText(initRow, Rect(0, 0, 0, 20))
+		/*
+			let's assume for now that the width refers to the outermost speakers, and
+			all other speakers are equally spaced between the ends.
+			StaticText(initRow, Rect(0, 0, 0, 20))
 			.string_("spacing (inches)")
 			.stringColor_(Color.white);
 
@@ -566,7 +611,7 @@ WFSInterface : WFSObject {
 			    .value_(18)
 			    .background_(scrollingNBColor);
 		);
-
+		*/
 		StaticText(initRow, Rect(0, 0, 0, 20))
 			.string_("air temp. (farenheit)")
 			.stringColor_(Color.white);
@@ -574,7 +619,8 @@ WFSInterface : WFSObject {
 		globalWidgets = globalWidgets.add(
 			'airTempBox' -> WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
 			    .value_(75)
-			    .background_(scrollingNBColor);
+			    .background_(scrollingNBColor)
+			    .action_({ |obj| this.setAirTemp(obj.value); });
 		);
 
 		StaticText(initRow, Rect(0, 0, 0, 20))
@@ -584,7 +630,8 @@ WFSInterface : WFSObject {
 		globalWidgets = globalWidgets.add(
 			'roomWidthBox' -> WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
 			    .value_(20)
-			    .background_(scrollingNBColor);
+			    .background_(scrollingNBColor)
+			.action_({ |obj| this.setRoomWidth(obj.value); });
 		);
 
 		StaticText(initRow, Rect(0, 0, 0, 20))
@@ -594,7 +641,8 @@ WFSInterface : WFSObject {
 		globalWidgets = globalWidgets.add(
 			'roomDepthBox' -> WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
 			    .value_(100)
-			    .background_(scrollingNBColor);
+			    .background_(scrollingNBColor)
+			    .action_({ |obj| this.setRoomDepth(obj.value); });
 		);
 		
 		// global control row
@@ -618,20 +666,16 @@ WFSInterface : WFSObject {
 
 		globalWidgets = globalWidgets.add(
 			'globalPlayButton' -> Button(globalRow, Rect(0, 0, 0, 20))
-		        .states_([[">", Color.white, Color.black], [">", Color.black, Color.white]])
+		        .states_([[">", Color.blue(0.45), Color.white]])
 		        .font_(Font("Arial Black", 12))
-			    .action_({ |obj| this.setGlobalPlay(obj.value); });
+			    .action_({ |obj| this.setGlobalPlay; });
 		);
 				
 		globalWidgets = globalWidgets.add(
 			'globalStopButton' -> Button(globalRow, Rect(0, 0, 0, 20))
-			    .states_([["[]", Color.white, Color.black]])
+			    .states_([["[]", Color.white, Color.blue(0.45)]])
 		        .font_(Font("Arial Black", 12))
-			    .action_({ |obj|
-					globalWidgets['globalPlayButton'].valueAction = 0;
-					// doesn't exist yet
-					//globalWidgets['globalRecordButton'].valueAction = 0;
-				});
+			    .action_({ |obj| this.setGlobalStop; });
 		);
 				
 		StaticText(globalRow, Rect(0, 0, 0, 20))
@@ -641,7 +685,8 @@ WFSInterface : WFSObject {
 		globalWidgets = globalWidgets.add(
 			'masterVolumeBox' -> WFSScrollingNumberBox(globalRow, Rect(0, 0, 0, 20))
 			    .value_(-6)
-			    .background_(scrollingNBColor);
+			    .background_(scrollingNBColor)
+			    .action_({ |obj| this.setMasterVolume(obj.value); });
 		);
 
 		globalWidgets = globalWidgets.add(

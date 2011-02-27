@@ -25,39 +25,45 @@ WFSMixer {
 	
 	init_wfsmixer {
 		s = Server.default;
-
+		
 		preferences = WFSPreferences();		
 		sequencer = WFSSequencer();
 		engine = WFSEngine();
 		interface = WFSInterface();
 		
-		// pass the environment to relevant objects after everything is initialized
-		// this will avoid cdependency issues
-		this.initializeDeferred;
-		
+		if(s.serverRunning){
+			this.initializeDeferred;
+		}{
+			s.waitForBoot{ this.initializeDeferred; };
+		};
+				
 		// all done, alert the post window
 		postln(this.class.asString ++ " initialized");
 	}
 
 	initializeDeferred {
 		/**
-			load all member data that refers to other parts of the project. This \
-			deferred loading will avoid dependency errors.
+			deferred initialization -- this comes after the server is booted, and after preliminary
+			initialization for all classes has been finished. Therefore, any data that relies on
+			other objects or on the running server should be initialized in a function that is
+			called here.
+
 		*/
 
 		preferences.getEnvironment(this); // doesn't use the environment yet but will soon
 		//sequencer.getEnvironment(this); // sequencer doesn't need the environment
-		//engine.getEnvironment(this); // engine does not use the environment yet
+		engine.getEnvironment(this); // engine does not use the environment yet
 		interface.getEnvironment(this);
 		// initialize local representation of the environment for the objects
 		interface.initDeferred;
 		preferences.initDeferred;
+		engine.initDeferred;
 	}
 	
 	addChannel {
 		sequencer.addChannel;
-		engine.addChannel;
 		interface.addChannel;
+		engine.addChannel;
 	}
 
 	removeChannel { |chan|
@@ -76,8 +82,13 @@ WFSMixer {
 		// this breaks the pattern of simply making the same call across the various
 		// subordinate classes. re-name the methods here?
 		values = preferences.loadPreset(filename);
-		sequencer.loadPreset(values[1]); 
-		interface.loadPreset(values[0]); // interface depends on the sequencer for menu data
+		sequencer.loadPreset(values[2]); 
+		interface.loadPreset(values[0], values[1]); // interface depends on the sequencer for menu data
+	}
+
+	numChannels_ { |num|
+		numChannels = num;
+		engine.numChannels = numChannels;
 	}
 	
 }

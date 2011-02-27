@@ -8,7 +8,6 @@ WFSPreferences : WFSObject {
 	// this class will probably be called from the top level and get data
 	// from the interface and the sequencer, so it will need the parent, I think
 	var presetRoot;
-	var sequencer, interface;
 	*new {
 		^super.new.init_wfspreferences;
 	}
@@ -18,11 +17,6 @@ WFSPreferences : WFSObject {
 		presetRoot = Platform.userAppSupportDir ++  "/Extensions/WFSPlayer/prefs/";
 		
 
-	}
-
-	initDeferred {
-		sequencer = parent.sequencer;
-		interface = parent.interface;
 	}
 	
 	readPrefFile { |filename|
@@ -43,6 +37,7 @@ WFSPreferences : WFSObject {
 		var doc;
 		var root;
 		var channelRoot;
+		var globalRoot;
 		var sequenceRoot;
 		var outFile, outFileName;
 
@@ -77,7 +72,20 @@ WFSPreferences : WFSObject {
 		};
 
 		// global params
-		// ... nothing here yet
+
+		globalRoot = doc.createElement("globalParams");
+		root.appendChild(globalRoot);
+
+		interface.globalWidgetValues.keysValuesDo{ |param, val|
+			var paramTag, textVal;
+
+			paramTag = doc.createElement("param");
+			paramTag.setAttribute("id", param.asString);
+			textVal = doc.createTextNode(val.asString);
+
+			paramTag.appendChild(textVal);
+			globalRoot.appendChild(paramTag);
+		};
 		
 		// sequencer data
 		sequenceRoot = doc.createElement("sequences");
@@ -132,6 +140,8 @@ WFSPreferences : WFSObject {
 		var doc;
 		var paramData, currentParam;
 		var outParams = Array();
+		var globalParamData;
+		var outGlobalParams = Dictionary();
 		var sequenceData;
 		var outSequences = Array();
 		
@@ -162,6 +172,19 @@ WFSPreferences : WFSObject {
 			paramData = paramData.getNextSibling;
 		};
 
+		// get global param data
+
+		globalParamData = doc.getDocumentElement.getElement("globalParams").getFirstChild;
+
+		while{ globalParamData.notNil }{
+			var key = globalParamData.getAttribute("id").asSymbol;
+			var val = globalParamData.getText.asInt;
+
+			outGlobalParams = outGlobalParams.add(key -> val);
+
+			globalParamData = globalParamData.getNextSibling;
+		};
+
 		// get sequence data
 
 		sequenceData = doc.getDocumentElement.getElement("sequences").getFirstChild;
@@ -185,7 +208,7 @@ WFSPreferences : WFSObject {
 			sequenceData = sequenceData.getNextSibling;
 		};
 		
-		^[outParams, outSequences];
+		^[outParams, outGlobalParams, outSequences];
 		
 	}
 }

@@ -1,110 +1,104 @@
 WFSEngine : WFSObject {
 	/**
-		Container class for the synth channels. Inside this class, "channel" refers to 
+		Container class for the synths and params. Inside this class, "channel" refers to 
 		sound source, rather than speaker channel. Not to be confused with the top-level
 		use of the term.
-
-		This class should perform these duties:
-		 - container for the synth channels
-		 - pass the parameters for all channels to the presets class -- unless the presets class 
-		   is to be maintained by the top-level class
-		   (the presets class should be a single class utilized by interface and engine)
-		 - manage the mixer SyntDef used by the WFSSynthChannels
 	  */
 
-	var numChannels=16; // number of output channels
-	var channels;       // container array for the WFSSynthChannel classes
-
+	// going to avoid using a container class for each of the output channels, for now
+	var params, defaultParams, s;
+	var groupNode, synthNodes;
+	var >numChannels; // number of speakers, not num in put channels
+	var inBusCounter=20; // ... static variable?
+	
 	*new {
+		this.loadSynthDef;
 		^super.new.init_wfsengine;
 	}
-
+	
 	init_wfsengine {
-		
-		// startup functions
-		this.loadSynthChannels(numChannels);
-		
-		postln(this.class.asString ++ " initialized");
-	}
-
-	loadActiveChannel { |chan|
-		postln("WFSEngine:loadActiveChannel is not implemented. This is its argument:");
-		postln(chan);
-	}
-
-	addChannel {
-		postln("this will add an input channel to the WFSEngine instance");
-	}
-
-	removeChannel { |chan|
-		postln("this will remove channel " ++ chan ++ " from the WFSEngine instance");
-	}
-
-	loadSynthChannels {
-		channels = numChannels.collect{ |ind|
-			WFSSynthChannel(ind);
-		}
-	}
-
-	setParam { |chan,param,val|
-		// all values have been converted from the container class
-		channels[chan].params[param] = val;
-	}
-	
-	*loadSynthDef {
-		// load the SynthDef here, check the date of the SynthDef and build if 
-		// the sources are newer.
-		SynthDef.new("WFSPlayer", { |inBus=20, outBus=1, delayTime=0.01, lev=1, maxDelay=1, gate=0|
-			var aSig, aIn, aEnv;
-			
-			aEnv = EnvGen.ar(Env.asr(0.5, 1, 0.5, 'exponential'), gate, lev, doneAction:2);
-
-			aIn = AudioIn.ar(inBus) * lev;
-			aSig = DelayC.ar(aIn, delayTime);
-
-			Out.ar(outBus, aSig);
-			
-		}).load(Server.default);
-	}
-}
-
-WFSSynthChannel {
-	/**
-		Controller class for the Synth that will pass audio from sound source to output.
-		
-		This class should perform these duties:
-		 - contain the parameters from the running synth
-		 - convert the synth parameter units to values usable by the interface.
-	  */
-	var channelIndex;
-	
-	var <>params; // standard parameter dictionary
-	
-	*new { |ind|
-		^super.new.init_wfsengine(ind);
-	}
-
-	init_wfsengine { |ind|
-		// member data
-		channelIndex = ind ? 0;
-		// since there are so few dynamic parameters, i need to decide if a dict
-		// is necessary -- this I should decide when it's time to support the presets
-		params = Dictionary[             // internal storage of synth parameters
-			'inBus'     -> 20,           // !! this needs to be set on startup
-			'outBus'    -> channelIndex, // each channel goes to the outputs in order. simple.
-			'delayTime' -> 0.001,        // set from the converted x @ y point from interface
-			'lev'       -> 1,            // same for this -- delay time and level should be accounted for
-			'maxDelay'  -> 1,            // set from initialization -- converted from "roomSize"
-			// gate param can safely be ignored -- it is only called to prevent clicks when killing a synth
+		synthNodes = Array();
+		/*  param schema:
+			params = Array[  // all channels
+			     Array[      // the source channel
+			         Dict[]  // to the output speaker
+			    ]
+			]
+		*/
+		params = Array();
+		s = Server.default;
+		defaultParams = Dictionary[
+			'delayTime' -> 0.01,
+			'maxDelay'  -> 1,    // corresponds to "room size" in the interface
+			'lev'       -> 1,    // per-synth calculated attenuation
+			'gain'      -> 1,    // global gain attenuation
+			'outBus'    -> 0,
+			'inBus'     -> 20,
 		];
+	}
+	
+	initDeferred {
+		numChannels = parent.numChannels;
 
-		// startup functions
-		this.startSynth;
+		this.initSynths;
+	}
+
+	initSynths {
+		// create the group
+		groupNode = s.nextNodeID;
+		// for reference: node ID, add action(1=add to tail), target node (the default node) 
+		s.sendMsg('g_new', groupNode, 1, 1);
+	}
+
+	getInBus { |chan|
+		// all 'inBus' values for any channel are equal, not checking to make sure of this
+		^params[chan][0]['inBus'];
+	}
+	
+	addChannel {
+		/*
+			prepare the data storage and create synths on the server.
+		*/
+		var newNodes = Array();
+		var newParams = Array();
 		
-		postln(this.class.asString ++ " initialized");
+		numChannels.do{ |ind|
+			newNodes = newNodes.add(s.nextNodeID);
+			newParams = newParams.add(defaultParams.copy);
+			newParams.last['outBus'] = ind;
+			newParams.last['inBus'] = inBusCounter;
+
+			s.listSendMsg(
+				['s_new', 'WFSMixerChannel', newNodes.last, 0, groupNode] ++ newParams.last;
+			);
+			s.sendMsg('n_set', newNodes.last, 'gate', 1);
+		};
+
+		inBusCounter = inBusCounter + 1;
+		
+		// store the nodes here for later setting methods
+		synthNodes = synthNodes.add(newNodes);
+		params = params.add(newParams);
+
+		s.queryAllNodes;
 	}
 
-	startSynth {
-		// start the synth, free the node if it exists already
+	*loadSynthDef {
+		/* One synth per input channel, per output channel. This should be limited to one
+		synth per input channel, but leave as is for now. */
+		SynthDef.new("WFSMixerChannel",
+			{ |inBus=20, outBus=0, delayTime=0.01, maxDelay=1, lev=1, gain=1, gate=0|
+				var aSig, aIn, aEnv;
+				
+				aEnv = EnvGen.ar(Env.asr(0.5, 1, 0.5, 'exponential'), gate, doneAction:2);
+				// gain = per-channel attenuation, lev = per-input level
+				aIn = In.ar(inBus) * lev * gain;
+				aSig = DelayC.ar(aIn, delayTime) * aEnv;
+
+				Out.ar(outBus, aSig);
+				
+			}
+		).load(Server.default);
 	}
+	
 }
