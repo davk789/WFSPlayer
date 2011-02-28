@@ -49,7 +49,8 @@ WFSMixer {
 			called here.
 
 		*/
-
+		//		s.sendMsg('dumpOSC', 1);
+		
 		preferences.getEnvironment(this); // doesn't use the environment yet but will soon
 		//sequencer.getEnvironment(this); // sequencer doesn't need the environment
 		engine.getEnvironment(this); // engine does not use the environment yet

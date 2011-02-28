@@ -67,9 +67,13 @@ WFSEngine : WFSObject {
 			newParams = newParams.add(defaultParams.copy);
 			newParams.last['outBus'] = ind;
 			newParams.last['inBus'] = inBusCounter;
-
+			//newParams.last['delayTime'] = 0.9.rand + 0.1; // ** test
+			// i don't know whiy this doesn't work -- the params are not being set
+			// even though the synth is being created
 			s.listSendMsg(
-				['s_new', 'WFSMixerChannel', newNodes.last, 0, groupNode] ++ newParams.last;
+				['s_new', 'WFSMixerChannel', newNodes.last, 0, groupNode]
+				++
+				newParams.last.getPairs
 			);
 			s.sendMsg('n_set', newNodes.last, 'gate', 1);
 		};
@@ -80,7 +84,7 @@ WFSEngine : WFSObject {
 		synthNodes = synthNodes.add(newNodes);
 		params = params.add(newParams);
 
-		s.queryAllNodes;
+
 	}
 
 	*loadSynthDef {
@@ -93,7 +97,7 @@ WFSEngine : WFSObject {
 				aEnv = EnvGen.ar(Env.asr(0.5, 1, 0.5, 'exponential'), gate, doneAction:2);
 				// gain = per-channel attenuation, lev = per-input level
 				aIn = In.ar(inBus) * lev * gain;
-				aSig = DelayC.ar(aIn, delayTime) * aEnv;
+				aSig = DelayC.ar(aIn, maxDelay, delayTime) * aEnv;
 
 				Out.ar(outBus, aSig);
 				
