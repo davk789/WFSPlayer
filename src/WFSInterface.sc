@@ -12,7 +12,8 @@ WFSInterface : WFSObject {
 	var channelCounter=0;   // counter value for use with the channel display only
 	// GUI elements
 	var controlViewWindow, initRow, globalRow, channelRow, transportRow; // containers for contolViewWidgets
-	var globalWidgets, channelWidgets; // all gui elements are kept in a Dict for easy access
+	// widgets are checked by the engine
+	var <globalWidgets, <channelWidgets; // all gui elements are kept in a Dict for easy access
 
 	// parameter defaults and storage
 	var defaultChannelWidgetValues;
@@ -306,7 +307,7 @@ WFSInterface : WFSObject {
 		channelWidgets['channelYPositionBox'].value = this.getParam('channelYPositionBox');
 
 		// .. and now push the value out to the engine
-		// ... still need to implement this
+		engine.updateLocation(activeChannel, val);
 
 		// and push the value to the sequencer
 		this.sendSequencerData;
@@ -549,14 +550,17 @@ WFSInterface : WFSObject {
 	
 	setRoomWidth { |width|
 		globalWidgetValues['roomWidthBox'] = width;
+		engine.roomWidth = width;
 	}
 
 	setRoomDepth { |depth|
 		globalWidgetValues['roomDepthBox'] = depth;
+		engine.roomDepth = depth;
 	}
 
 	setMasterVolume { |vol|
-		globalWidgetValues['masterVolumeBox'] = vol;		
+		globalWidgetValues['masterVolumeBox'] = vol;
+		engine.masterVolume = vol;
 	}
 
 	// barf the gui
@@ -641,6 +645,7 @@ WFSInterface : WFSObject {
 		globalWidgets = globalWidgets.add(
 			'roomDepthBox' -> WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
 			    .value_(100)
+			    .maxVal_(1116) // corresponds to 1 second maximum delay per-speaker
 			    .background_(scrollingNBColor)
 			    .action_({ |obj| this.setRoomDepth(obj.value); });
 		);

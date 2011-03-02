@@ -2,22 +2,16 @@ WFSMixer {
 	/**
 		WFSMixer - a simple spatializing mixer.
 
-		The top level class does these things:
-		- instantiate the objects that will perform all the work
-		- allow for communication between objects through this top-level class
-		- synchronize function calls that must affect all object in the project
+		This class creates and facilitates communication between the various objects in 
+		the project.
 	*/
 	var s;
 	var <numChannels=16; // number of speakers, i.e. number of output channels
-	                     // ** to be used by the subordinate classes
-	/**** 
-		currently missing the number of input channels -- this data is only kept in the interface 
-		at the moment -- this data needs to be used by the engine as well
-	*/ 
-	var <>engine;        // 
+	// the number of input channels is not stored in this class
+	var <>engine;
 	var <>interface;
 	var <>sequencer;
-	var <>preferences;   // do all of these *really* need read and write prefrences?
+	var <>preferences;
 	
 	*new { 
 		^super.new.init_wfsmixer;
@@ -32,10 +26,13 @@ WFSMixer {
 		interface = WFSInterface();
 		
 		if(s.serverRunning){
-			this.initializeDeferred;
-		}{
-			s.waitForBoot{ this.initializeDeferred; };
+			s.quit;
 		};
+
+		// the delay for the channels exceeds the default limit for server memory 
+		// allocation. 
+		s.options.memSize = 2 ** 18; // ~256 MB (8MB is the default)
+		s.waitForBoot{ this.initializeDeferred; };
 				
 		// all done, alert the post window
 		postln(this.class.asString ++ " initialized");

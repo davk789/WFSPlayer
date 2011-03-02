@@ -5,6 +5,21 @@ s.quit;
 s.boot;
 s.queryAllNodes;
 
+s.sendMsg('n_trace', 1002);
+s.sendMsg('n_trace', 1001);
+
+// this is all that I really need to check the sound
+
+~main = WFSMixer();
+~outBus = ~main.engine.getInBus(0);// I think I'll need something like this
+
+~node = s.nextNodeID;
+s.sendMsg('s_new', 'testWFS', ~node, 0, 1, 'outBus', ~outBus);
+//s.sendMsg('n_set', 1002, 'outBus', 1)
+s.sendMsg('n_free', ~node);
+
+// other testing stuff
+
 ~testClass = Proto({
 	~inBusCounter = 20;
 	~defaultParams = Dictionary[
@@ -60,7 +75,7 @@ s.sendMsg('dumpOSC', 0);
 ~outBus = ~testClass.getInBus(0);
 ~outBus = 20;
 
-// this doesn't work
+// this doesn't work -- or does it??
 ~main = WFSMixer();
 ~outBus = ~main.engine.getInBus(0);// I think I'll need something like this
 
