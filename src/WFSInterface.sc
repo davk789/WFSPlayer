@@ -32,7 +32,7 @@ WFSInterface : WFSObject {
 		];
 		defaultChannelWidgetValues =  Dictionary[
 		    'channelLabel'            -> ("Channel " ++ channelCounter),
-			'audioSourceMenu'         -> 0, 
+			//'audioSourceMenu'         -> 0, // access to the mixer is through code for now
 			'channelLoopButton'       -> 0,  
 			'channelVolumeBox'        -> -6,
 			'channelXPositionBox'     -> 0.1,
@@ -43,7 +43,6 @@ WFSInterface : WFSObject {
 			'channelPlayButton'       -> 0,
 			'channelSequenceMenu'     -> 0,
 		];
-
 		
 		postln(this.class.asString ++ " initialized");
 	}
@@ -336,7 +335,7 @@ WFSInterface : WFSObject {
 		globalWidgets['locationMarkerArea'].value = markerVals;
 
 		// push the data to the engine
-
+		engine.updateLocation(activeChannel, markerVals[activeChannel]);
 		// push the data to the sequencer
 		this.sendSequencerData;
 	}
@@ -366,7 +365,7 @@ WFSInterface : WFSObject {
 		globalWidgets['locationMarkerArea'].value = markerVals;
 
 		// push the data to the engine
-		// ... not implemented yet
+		engine.updateLocation(activeChannel, markerVals[activeChannel]);
 		// push the data to the sequencer
 		this.sendSequencerData;
 	}
@@ -384,21 +383,15 @@ WFSInterface : WFSObject {
 	}
 	
 	setChannelVolume { |vol|
-		// store the volume parameter and push the value to the engine
 		this.setParam('channelVolumeBox', vol);
-
-		/*
-			push the value to the engine -- the conversion from db to amp should be handled either
-			in the top-level class or in the engine I think. the interface code should not
-			be concerned with the values that are used by the engine.
-		*/
+		engine.setChannelVolume(activeChannel, this.getParam('channelVolumeBox'));
 	}
-
+	/*
 	setChannelAudioSource { |source|
 		// again -- this functionality needs to be implemented in the engine
 		this.setParam('audioSourceMenu', source);
 	}
-
+	*/
 	setChannelRecord { |val|
 		/**
 			called from the record button
@@ -534,28 +527,27 @@ WFSInterface : WFSObject {
 
 	setNumSpeakers { |num|
 		globalWidgetValues['numSpeakersBox'] = num;
-		// send directly to the engine
 		engine.numChannels = globalWidgetValues['numSpeakersBox'];
 	}
 
 	setAirTemp { |temp|
 		globalWidgetValues['airTempBox'] = temp;
-		postf("getting temperature %. this needs to be implemented in the engine.\n", temp);
+		engine.airTemperature = globalWidgetValues['airTempBox'];
 	}
 	
 	setRoomWidth { |width|
 		globalWidgetValues['roomWidthBox'] = width;
-		engine.roomWidth = width;
+		engine.roomWidth = globalWidgetValues['roomWidthBox'];
 	}
 
 	setRoomDepth { |depth|
 		globalWidgetValues['roomDepthBox'] = depth;
-		engine.roomDepth = depth;
+		engine.roomDepth = globalWidgetValues['roomDepthBox'];
 	}
 
 	setMasterVolume { |vol|
 		globalWidgetValues['masterVolumeBox'] = vol;
-		engine.masterVolume = vol;
+		engine.masterVolume = globalWidgetValues['masterVolumeBox'];
 	}
 
 	// barf the gui
@@ -721,7 +713,7 @@ WFSInterface : WFSObject {
 			    .action_({ |obj| this.setChannelLabel(obj.value); });
 		);
 		
-		StaticText(channelRow, Rect(0, 0, 0, 20))
+		/*		StaticText(channelRow, Rect(0, 0, 0, 20))
 		    .string_("audio source")
 		    .stringColor_(Color.white);
 
@@ -730,20 +722,7 @@ WFSInterface : WFSObject {
 			    .items_(["select...", "Audio In 1", "Audio In 2", "Audio In etc", "Sampler 1", "SynthDef 1"])
 			    .action_({ |obj| this.setChannelAudioSource(obj.value) });
 		);
-		
-		channelWidgets = channelWidgets.add(
-			'channelSequenceClearButton' -> Button(channelRow, Rect(0, 0, 0, 20))
-			    .states_([["clear sequence", Color.black, Color.grey]]);
-		);
-		
-		channelWidgets = channelWidgets.add(
-			'channelLoopButton' -> Button(channelRow, Rect(0, 0, 0, 20))
-			    .states_([
-					["loop", Color.black, Color.grey],
-					["loop", Color.black, Color.yellow]
-				]);
-		);
-	
+		*/
 		StaticText(channelRow, Rect(0, 0, 0, 20))
 		    .string_("volume (dB)")
 		    .stringColor_(Color.white);
@@ -850,6 +829,19 @@ WFSInterface : WFSObject {
 				])
 		        .value_(1)
 		        .action_({ |obj| this.setChannelRecordOnMove(obj.value) });
+		);
+
+		channelWidgets = channelWidgets.add(
+			'channelSequenceClearButton' -> Button(transportRow, Rect(0, 0, 0, 20))
+			    .states_([["clear sequence", Color.black, Color.grey]]);
+		);
+		
+		channelWidgets = channelWidgets.add(
+			'channelLoopButton' -> Button(transportRow, Rect(0, 0, 0, 20))
+			    .states_([
+					["loop", Color.black, Color.grey],
+					["loop", Color.black, Color.yellow]
+				]);
 		);
 		
 		// disable the channel controls until a sound source is added

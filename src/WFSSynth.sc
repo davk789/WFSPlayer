@@ -10,12 +10,12 @@ WFSEngine : WFSObject {
 
 	// store as internal units: meters and absolute amplitude
 	var channelVolumes; // should this be kept in a better spot?
-	var roomDepth=30, roomWidth=30, masterVolume=1; // these should be static variables
+	var roomDepth=10, roomWidth=10, masterVolume=1, airTemperature=23; // these should be static variables
 	var synthParams, defaultParams, s;
 	var mixerNode, inputChannelNodes, synthNodes;
 	var <numChannels=16; // number of speakers, not num in put channels
 	var inBusCounter=20; // ... static variable?
-	var speedOfSound=340.29; // m/s
+	//	var speedOfSound=340.29; // m/s
 	
 	*new {
 		this.loadSynthDef;
@@ -121,29 +121,26 @@ WFSEngine : WFSObject {
 
 	}
 
-	numChannels_ { |num|
-		var numInputs;
-		numChannels = num;
-		numInputs = inputChannelNodes.size;
+	removeChannel { |chan|
+		s.sendMsg('n_set', inputChannelNodes[chan], 'gate', 0);
+		s.sendMsg('n_free', inputChannelNodes[chan]);
 
-		if(numInputs == 0){
-			// skip everything if there are no channels initialized
-			^nil;
+		inputChannelNodes.removeAt(chan);
+		synthNodes.removeAt(chan);
+		synthParams.removeAt(chan);
+
+		if(inputChannelNodes.size == 0){
+			inBusCounter = 20; // go back to the default value if removing the last channel
 		}
-		
-		// free the existing synth nodes
-		s.sendMsg('n_set', mixerNode, 'gate', 0);
-		s.sendMsg('n_free', mixerNode);
-		// clear the parameter and node data
-		inputChannelNodes = Array();
-		synthNodes = Array();
-		synthParams = Array();
-		inBusCounter = 20; // back to default value
-		
-		this.initDeferred;
-		numInputs.do{ |ind|
-			this.addChannel(ind);
-		};
+		// ... is there anything else missing here?
+	}
+
+	updateAllLocations {
+		var locations;
+		locations = interface.globalWidgets['locationMarkerArea'].value;
+		locations.do{ |loc, ind|
+			this.updateLocation(ind, loc);
+		};	
 	}
 	
 	updateLocation { |chan, loc|
@@ -164,10 +161,10 @@ WFSEngine : WFSObject {
 			synthParams[chan][ind]['delayTime'] = delay;
 
 			/*
-				for volume -- assume 2dB per meter attenuation, double check the math
-				later.
+				for volume -- attenuate a fixed dB/m amount, fiddle with the params -- 2dB seems
+				to be the value I found online so far
 			*/
-			level = (distance * 0.5/*2*/).abs.neg.dbamp; // fiddle around with the scaling here
+			level = (distance * 0.5/*2*/).abs.neg.dbamp;
 			synthParams[chan][ind]['lev'] = level;
 			
 			s.sendMsg('n_set', synthNodes[chan][ind], 'delayTime', delay, 'lev', level);
@@ -184,24 +181,74 @@ WFSEngine : WFSObject {
 
 	distanceToTime { |distance| // distance in meters
 		// using a constant speed of sound: 340.29 m/s
-		^(distance / speedOfSound);
+		^(distance / this.speedOfSound);
 	}
 
-	roomDepth_ { |val|		
-		// this value will be used to set the maximum delay,
-		// ... if I can figure out how to use it
-		roomDepth = this.feetToMeters(val);		
+	fahrenheitToCelsius { |fahr|
+		^(fahr - 32) / 1.8;
 	}
 
-	roomWidth_ { |val|
-		roomWidth = this.feetToMeters(val);
-		postln("room width is " ++ roomWidth);
+	speedOfSound {
+		// not sure the figures here are accurate, but seems
+		// close enough for now
+		^331.4 + (airTemperature * 0.6);
+	}
+
+	setChannelVolume { |chan, vol|
+		var amp = vol.dbamp;
+		
+		synthParams[chan].do{ |obj|
+			obj['channelVol'] = amp;
+		};
+		
+		s.sendMsg('n_set', inputChannelNodes[chan], 'channelVol', amp);
+	}
+	
+	// instance setter methods
+
+	airTemperature_ { |fTemp|
+		airTemperature = this.fahrenheitToCelsius(fTemp);
+		this.updateAllLocations;
+	}
+	
+	roomWidth_ { |fWidth|
+		roomWidth = this.feetToMeters(fWidth);
+		this.updateAllLocations;
+	}
+
+	roomDepth_ { |fDepth|
+		roomDepth = this.feetToMeters(fDepth);
+		this.updateAllLocations;
 	}
 
 	masterVolume_ { |val|
 		masterVolume = val.dbamp;
-		postln("setting master volume to " ++ masterVolume);
 		s.sendMsg('n_set', mixerNode, 'masterVol', masterVolume);
+	}
+
+	numChannels_ { |num|
+		var numInputs;
+		numChannels = num;
+		numInputs = inputChannelNodes.size;
+
+		if(numInputs == 0){
+			// skip everything if there are no channels initialized
+			^nil;
+		};
+		
+		// free the existing synth nodes
+		s.sendMsg('n_set', mixerNode, 'gate', 0);
+		s.sendMsg('n_free', mixerNode);
+		// clear the parameter and node data
+		inputChannelNodes = Array();
+		synthNodes = Array();
+		synthParams = Array();
+		inBusCounter = 20; // back to default value
+		
+		this.initDeferred;
+		numInputs.do{ |ind|
+			this.addChannel(ind);
+		};
 	}
 	
 	// class methods

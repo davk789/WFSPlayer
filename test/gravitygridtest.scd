@@ -10,7 +10,7 @@ s.sendMsg('n_trace', 1001);
 
 // this is all that I really need to check the sound
 
-Server.default.options.device = ServerOptions.devices[0];
+//Server.default.options.device = ServerOptions.devices[0];
 ~main = WFSMixer();
 ~outBus = ~main.engine.getInBus(0);
 
@@ -19,8 +19,6 @@ s.sendMsg('s_new', 'testWFS', ~node, 0, 1, 'outBus', ~outBus);
 s.sendMsg('s_new', 'wfsTestPulses', ~node, 0, 1, 'outBus', ~outBus);
 //s.sendMsg('n_set', 1002, 'outBus', 1)
 s.sendMsg('n_free', ~node);
-
-
 
 // other testing stuff
 
