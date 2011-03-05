@@ -1,23 +1,18 @@
 WFSInterface : WFSObject {
 	/**
-		WFSInterface -- This class serves these purposes:
-		 - container for the GUI widgets
-		 - perform actions to send to the engine -- including unit conversions
-		 - store the parameter data in the running class
-		   (there may need to be a separate preset class to read and write preferences)
-
+		This class handles all user input, stores the front-end parameter information, and interacts
+		with the sequencer.
 	*/
 
 	var activeChannel=0;    // index of the active source channel
 	var channelCounter=0;   // counter value for use with the channel display only
 	// GUI elements
-	var controlViewWindow, initRow, globalRow, channelRow, transportRow; // containers for contolViewWidgets
-	// widgets are checked by the engine
+	var controlViewWindow, initRow, globalRow, channelRow, transportRow;
 	var <globalWidgets, <channelWidgets; // all gui elements are kept in a Dict for easy access
 
 	// parameter defaults and storage
 	var defaultChannelWidgetValues;
-	var <channelWidgetValues, <globalWidgetValues; // used by the preference manager
+	var <channelWidgetValues, <globalWidgetValues;
 
 	*new {
 		^super.new.init_wfsinterface;
@@ -63,7 +58,6 @@ WFSInterface : WFSObject {
 		globalWidgetValues.keysValuesDo{ |key,val|
 			globalWidgets[key].value = val;
 		}
-
 	}
 
 	makeSequencerActions {
@@ -540,12 +534,13 @@ WFSInterface : WFSObject {
 
 	setNumSpeakers { |num|
 		globalWidgetValues['numSpeakersBox'] = num;
-		// try sending directly to the engine
-		parent.numChannels = globalWidgetValues['numSpeakersBox'];
+		// send directly to the engine
+		engine.numChannels = globalWidgetValues['numSpeakersBox'];
 	}
 
 	setAirTemp { |temp|
 		globalWidgetValues['airTempBox'] = temp;
+		postf("getting temperature %. this needs to be implemented in the engine.\n", temp);
 	}
 	
 	setRoomWidth { |width|
@@ -566,9 +561,10 @@ WFSInterface : WFSObject {
 	// barf the gui
 	
 	makeGUI {
+		var presetList;
 		var scrollingNBColor = Color.new255(255, 255, 200);
 
-		controlViewWindow = Window("WFS Mixer", Rect(500.rand, 500.rand, 1000, 485)).front;
+		controlViewWindow = Window("WFSMixer", Rect(500.rand, 500.rand, 1000, 485)).front;
 		controlViewWindow.view.decorator = FlowLayout(controlViewWindow.view.bounds);
 		
 		initRow = VLayoutView(controlViewWindow, Rect(0, 0, 120, 475))
@@ -599,7 +595,7 @@ WFSInterface : WFSObject {
 
 		globalWidgets = globalWidgets.add(
 			'numSpeakersBox' ->	NumberBox(initRow, Rect(0, 0, 0, 20))
-			     .value_(parent.numChannels) // there, now that top-level value is used :P
+			     .value_(engine.numChannels) // there, now that top-level value is used :P
 			     .action_({ |obj| this.setNumSpeakers(obj.value) });
 		);
 		
@@ -862,44 +858,7 @@ WFSInterface : WFSObject {
 		channelWidgets.do{ |obj|
 			obj.enabled = false;
 		};
-
-
-		/*
-			// leave out the presets per-channel for now
-			// depending on how the usage develops it will probably
-			// be better to keep the presets limited to the global settings
-		channelWidgets = channelWidgets.add(
-			'channelSaveButton' -> Button(channelRow, Rect(0, 0, 0, 20))
-			    .states_([["save", Color.white, Color.new255(150, 150, 255, 200)]]);
-		);
-
-		channelWidgets = channelWidgets.add(
-			'channelLoadButton' -> Button(channelRow, Rect(0, 0, 0, 20))
-			    .states_([["load", Color.white, Color.new255(150, 150, 255, 200)]]);
-			);	*/
-
-	}
-
-	setNumChannels { |num|
-		/**
-			prepare the gui to handle the number of active channels.
-			- set the instance variable, 
-			- communicate to the top-level class
-			- update the marker area to reflect the number of sound sources
-		  */
-		/*var numChan;
-
-		parent.numChannels = num;
-
-		numChan = parent.numChannels;
-
-		globalWidgets['locationMarkerArea'].value = Array.fill(numChan, { |ind|
-			(ind / (numChan - 1)) @ 0.1;
-		});
 		
-		globalWidgets['locationMarkerArea'].refresh;
-		*/	
 	}
-
 
 }

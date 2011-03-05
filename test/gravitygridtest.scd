@@ -10,63 +10,22 @@ s.sendMsg('n_trace', 1001);
 
 // this is all that I really need to check the sound
 
+Server.default.options.device = ServerOptions.devices[0];
 ~main = WFSMixer();
-~outBus = ~main.engine.getInBus(0);// I think I'll need something like this
+~outBus = ~main.engine.getInBus(0);
 
 ~node = s.nextNodeID;
 s.sendMsg('s_new', 'testWFS', ~node, 0, 1, 'outBus', ~outBus);
+s.sendMsg('s_new', 'wfsTestPulses', ~node, 0, 1, 'outBus', ~outBus);
 //s.sendMsg('n_set', 1002, 'outBus', 1)
 s.sendMsg('n_free', ~node);
 
+
+
 // other testing stuff
 
-~testClass = Proto({
-	~inBusCounter = 20;
-	~defaultParams = Dictionary[
-		'delayTime' -> 0.01,
-		'maxDelay'  -> 1,    // corresponds to "room size" in the interface
-		'lev'       -> 1,    // per-synth calculated attenuation
-		'gain'      -> 1,    // global gain attenuation
-		'outBus'    -> 0,
-		'inBus'     -> 20,
-	];
-	~numChannels = 2;
-	~groupNode = s.nextNodeID;
-	~synthNodes = Array();
-	~params = Array();
-	~addChannel = {
-		/*
-			prepare the data storage and create synths on the server.
-		*/
-		var newNodes = Array();
-		var newParams = Array();
-		s.sendMsg('g_new', ~groupNode, 1, 1);
-		~numChannels.do{ |ind|
-			newNodes = newNodes.add(s.nextNodeID);
-			newParams = newParams.add(~defaultParams.copy);
-			newParams.last['outBus'] = ind;
-			newParams.last['inBus'] = ~inBusCounter;
-			newParams.last['delayTime'] = 0.9.rand + 0.1; // ** test
-			// i don't know whiy this doesn't work -- the params are not being set
-			// even though the synth is being created
-			s.listSendMsg(
-				['s_new', 'WFSMixerChannelTest', newNodes.last, 0, ~groupNode]
-				++
-				newParams.last.getPairs
-			);
-			s.sendMsg('n_set', newNodes.last, 'gate', 1);
-		};
-		~inBusCounter = ~inBusCounter + 1;
-		// store the nodes here for later setting methods
-		~synthNodes = ~synthNodes.add(newNodes);
-		~params = ~params.add(newParams);
-		s.queryAllNodes;
-	};
-	~getInBus = { |chan|
-		~params[chan][0]['inBus'];
-	};
-});
 
+// ... older
 s.sendMsg('dumpOSC', 1);
 s.sendMsg('dumpOSC', 0);
 ~testClass.addChannel;
@@ -96,6 +55,18 @@ s.sendMsg('n_set', ~mNode2, 'gate', 0);
 s.sendMsg('n_set', ~mNode, 'gate', 1);
 s.sendMsg('n_set', ~mNode, 'gate', 0);
 
+
+SynthDef("wfsTestPulses", { |outBus=0|
+	var aOsc;
+	aOsc = Impulse.ar(1,
+		LFPulse.kr(1, 0, 0.5, 2, 1),
+		4
+	);
+	Out.ar(
+		outBus,
+		RLPF.ar(aOsc, 160, 0.01, 0.5)
+	);
+}).load(s);
 
 SynthDef.new("testWFS", { |outBus=20, lev=0.1|
 	var aSig;

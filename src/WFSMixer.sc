@@ -6,29 +6,37 @@ WFSMixer {
 		the project.
 	*/
 	var s;
-	var <numChannels=16; // number of speakers, i.e. number of output channels
-	// the number of input channels is not stored in this class
 	var <>engine;
 	var <>interface;
 	var <>sequencer;
 	var <>preferences;
 	
-	*new { 
-		^super.new.init_wfsmixer;
+	*new { |test|
+		^super.new.init_wfsmixer(test);
 	}
 	
-	init_wfsmixer {
+	init_wfsmixer { |suppressEngine|
 		s = Server.default;
 		
-		preferences = WFSPreferences();		
+		preferences = WFSPreferences();
 		sequencer = WFSSequencer();
 		engine = WFSEngine();
 		interface = WFSInterface();
-		
+
+		// break early for testing
+		if(suppressEngine == "test"){
+			this.initializeDeferred;
+			^nil;
+		};
+
 		if(s.serverRunning){
 			s.quit;
 		};
 
+		// for testing -- when playing itunes through the headphones, specify
+		// the edirol :P
+		s.options.device = ServerOptions.devices[0];
+		
 		// the delay for the channels exceeds the default limit for server memory 
 		// allocation. 
 		s.options.memSize = 2 ** 18; // ~256 MB (8MB is the default)
@@ -82,11 +90,6 @@ WFSMixer {
 		values = preferences.loadPreset(filename);
 		sequencer.loadPreset(values[2]); 
 		interface.loadPreset(values[0], values[1]); // interface depends on the sequencer for menu data
-	}
-
-	numChannels_ { |num|
-		numChannels = num;
-		engine.numChannels = numChannels;
 	}
 	
 }
