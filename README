@@ -20,8 +20,8 @@ be set to the inBuses of their respective channels as follows:
 // the server will boot automatically. add two channels in the WFSMixer interface
 // and then run the following code.
 
-~ggOutBus = ~main.engine.getInBus(0);
-~pOutBus = ~main.engine.getInBus(1);
+~ggOutBus = ~main.addChannel;
+~pOutBus = ~main.addChannel;
 
 // obv. use your own SynthDefs here (or I can call default synthDefs
 // *** NOTE that the synths must be added to the head of group 1 ***

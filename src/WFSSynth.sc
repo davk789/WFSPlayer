@@ -56,6 +56,11 @@ WFSEngine : WFSObject {
 		// all 'inBus' values for any channel are equal, not checking to make sure of this
 		^synthParams[chan][0]['inBus'];
 	}
+
+	getAllInputs {
+		// collect all input buses
+		^synthParams.collect{ |obj| obj[0]['inBus']; };
+	}
 	
 	addChannel { |index| // use this param when re-setting the num speakers to force
 		                 // a channel number

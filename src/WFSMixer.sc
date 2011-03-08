@@ -70,6 +70,8 @@ WFSMixer {
 		sequencer.addChannel;
 		interface.addChannel;
 		engine.addChannel;
+		// return the input bus of the new channel
+		^engine.getAllInputs.last;
 	}
 
 	removeChannel { |chan|
@@ -90,6 +92,12 @@ WFSMixer {
 		values = preferences.loadPreset(filename);
 		sequencer.loadPreset(values[2]); 
 		interface.loadPreset(values[0], values[1]); // interface depends on the sequencer for menu data
+	}
+
+	// interface functions
+
+	getInBus { |chan|
+		^engine.getInBus(chan);
 	}
 	
 }
