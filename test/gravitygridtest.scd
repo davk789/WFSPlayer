@@ -12,13 +12,18 @@ s.sendMsg('n_trace', 1001);
 
 //Server.default.options.device = ServerOptions.devices[0];
 ~main = WFSMixer();
-~outBus = ~main.engine.getInBus(0);
 
-~node = s.nextNodeID;
-s.sendMsg('s_new', 'testWFS', ~node, 0, 1, 'outBus', ~outBus);
-s.sendMsg('s_new', 'wfsTestPulses', ~node, 0, 1, 'outBus', ~outBus);
+~ggOutBus = ~main.engine.getInBus(0);
+~pOutBus = ~main.engine.getInBus(1);
+
+~ggNode = s.nextNodeID;
+s.sendMsg('s_new', 'testWFS', ~ggNode, 0, 1, 'outBus', ~ggOutBus);
+s.sendMsg('n_free', ~ggNode);
+~pNode = s.nextNodeID;
+s.sendMsg('s_new', 'wfsTestPulses', ~pNode, 0, 1, 'outBus', ~pOutBus);
+s.sendMsg('n_free', ~pNode);
+
 //s.sendMsg('n_set', 1002, 'outBus', 1)
-s.sendMsg('n_free', ~node);
 
 // other testing stuff
 

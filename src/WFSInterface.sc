@@ -63,7 +63,7 @@ WFSInterface : WFSObject {
 		sequencer.action = { |val, index|
 			// no need to defer the actions here?
 			globalWidgets['locationMarkerArea'].setValueForIndex(index, val);
-			// push the values to the top-level namespace here
+			engine.updateLocation(index, val);
 		};
 		
 		sequencer.stopAction = { |index| // any args that need to be passed?
@@ -620,10 +620,9 @@ WFSInterface : WFSObject {
 			.stringColor_(Color.white);
 		
 		globalWidgets = globalWidgets.add(
-			'roomWidthBox' -> WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
+			'roomWidthBox' -> NumberBox(initRow, Rect(0, 0, 0, 20))
 			    .value_(20)
-			    .background_(scrollingNBColor)
-			.action_({ |obj| this.setRoomWidth(obj.value); });
+			    .action_({ |obj| this.setRoomWidth(obj.value); });
 		);
 
 		StaticText(initRow, Rect(0, 0, 0, 20))
@@ -631,10 +630,9 @@ WFSInterface : WFSObject {
 			.stringColor_(Color.white);
 		
 		globalWidgets = globalWidgets.add(
-			'roomDepthBox' -> WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
+			'roomDepthBox' -> NumberBox(initRow, Rect(0, 0, 0, 20))
 			    .value_(100)
 			    .maxVal_(1116) // corresponds to 1 second maximum delay per-speaker
-			    .background_(scrollingNBColor)
 			    .action_({ |obj| this.setRoomDepth(obj.value); });
 		);
 		
