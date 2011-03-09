@@ -51,13 +51,13 @@ util/WFSScrollingNumberBox.sc
 *********** notes ***********
 
 TODO:
-finish audio integration with existing features
 add a "loop" option to the sequencer
-...
+add inverse option to place the sounds in front of the speaker array
+... wish list
 add drawing/algorithmic sequencing features
 add vertical placement of audio signals
 
 BUGS:
 noticeable delay artfacts when moving sound sources
-volume attenuation for the panning feature is too extreme
-audio mostly does not work --sequencer, initialization especially
+volume attenuation for the panning feature needs to be fine tuned
+loading channel resuls in saved sequence selection not being recalled

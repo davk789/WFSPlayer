@@ -17,13 +17,13 @@ s.sendMsg('n_trace', 1001);
 //~pOutBus = ~main.addChannel;
 
 ~ggOutBus = ~main.getInBus(0);
-~ggOutBus = ~main.getInBus(0);
+~pOutBus = ~main.getInBus(1);
 
 ~ggNode = s.nextNodeID;
 s.sendMsg('s_new', 'testWFS', ~ggNode, 0, 1, 'outBus', ~ggOutBus);
 s.sendMsg('n_free', ~ggNode);
 ~pNode = s.nextNodeID;
-s.sendMsg('s_new', 'wfsTestPulses', ~pNode, 0, 1, 'outBus', ~pOutBus);
+s.sendMsg('s_new', 'wfsTestPulses', ~pNode, 0, 1, 'outBus', ~pOutBus, 'freq', 440);
 s.sendMsg('n_free', ~pNode);
 
 //s.sendMsg('n_set', 1002, 'outBus', 1)
@@ -62,7 +62,7 @@ s.sendMsg('n_set', ~mNode, 'gate', 1);
 s.sendMsg('n_set', ~mNode, 'gate', 0);
 
 
-SynthDef("wfsTestPulses", { |outBus=0|
+SynthDef("wfsTestPulses", { |outBus=0, freq=160|
 	var aOsc;
 	aOsc = Impulse.ar(1,
 		LFPulse.kr(1, 0, 0.5, 2, 1),
@@ -70,7 +70,7 @@ SynthDef("wfsTestPulses", { |outBus=0|
 	);
 	Out.ar(
 		outBus,
-		RLPF.ar(aOsc, 160, 0.01, 0.5)
+		RLPF.ar(aOsc, freq, 0.01, 0.5)
 	);
 }).load(s);
 

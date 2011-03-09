@@ -228,8 +228,6 @@ WFSInterface : WFSObject {
 				globalWidgets['locationMarkerArea'].enabled = false;
 			};
 
-			// remove the sole corresponding channel from the sequencer
-			sequencer.removeChannel; // use the default argument
 		} // else
 		{
 			// if there is no arg, get the last channel available
@@ -249,10 +247,8 @@ WFSInterface : WFSObject {
 			displayValues.removeAt(chanToKill);
 			channelWidgets['channelDisplay'].items = displayValues;
 
-			// remove the corresponding channel from the sequencer
-			sequencer.removeChannel(chanToKill);
-			
-			// activate the first channel of the project
+			// sequencer.loadActiveChannel(chanToKill);
+			// used to be called here
 			parent.loadActiveChannel(0);
 		};
 

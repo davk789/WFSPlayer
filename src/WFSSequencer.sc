@@ -50,23 +50,19 @@ WFSSequencer : WFSObject {
 	}
 
 	addChannel {
-		// this is called when the WFSInterface:addChannel is called
 		sequences = sequences.add(Array());
 		stopFlags = stopFlags.add(false);
-		postln("I have this number of sequences in WFSSequencer:sequences: " ++ sequences.size);
 	}
 
 	removeChannel { |chan|
 		var chanToKill;
-		// avoid an error if calling remove before adding any channels
-		// ... there's that chort circuit trick again. am I overdoing this?
 
 		if(sequences.size == 0){ ^nil; };
 
 		chanToKill = chan ?? { sequences.lastIndex };
-		
+
 		sequences.removeAt(chanToKill);
-		stopFlags.removeAt(chanToKill)
+		stopFlags.removeAt(chanToKill);
 	}
 
 	// record functions

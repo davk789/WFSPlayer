@@ -3,9 +3,6 @@ WFSEngine : WFSObject {
 		Container class for the synths and params. Inside this class, "channel" refers to 
 		sound source, rather than speaker channel. Not to be confused with the top-level
 		use of the term.
-
-		current tasks -- implement the room size/max delay
-		make addChannel draw all sensible values
 	  */
 
 	// store as internal units: meters and absolute amplitude
@@ -137,9 +134,7 @@ WFSEngine : WFSObject {
 		if(inputChannelNodes.size == 0){
 			inBusCounter = 20; // go back to the default value if removing the last channel
 		}
-		// ... is there anything else missing here?
 	}
-
 
 	loadPreset {
 		/*
