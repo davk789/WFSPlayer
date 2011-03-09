@@ -67,10 +67,17 @@ WFSInterface : WFSObject {
 		};
 		
 		sequencer.stopAction = { |index| // any args that need to be passed?
-			channelWidgetValues[index]['channelPlayButton'] = 0;
-			
-			if(index == activeChannel){
-				channelWidgets['channelPlayButton'].value = 0;
+			var stopCondition;
+			stopCondition = channelWidgetValues[index]['channelLoopButton'].toBool && channelWidgetValues[index]['channelPlayButton'].toBool;
+			if(stopCondition){
+				sequencer.playSequence(index, channelWidgetValues[index]['channelSequenceMenu']);
+			}{
+				channelWidgetValues[index]['channelPlayButton'] = 0;
+				
+				if(index == activeChannel){
+					channelWidgets['channelPlayButton'].value = 0;
+				};
+
 			};
 		};
 	}
@@ -88,7 +95,6 @@ WFSInterface : WFSObject {
 
 	loadActiveChannel { |channelNum=0|
 		var values, onMove, isRecording;
-		/*********** this is called from the parent, which has a function of the same name */
 		/**
 			This is basically called when the GUI needs updating by adding a channel or
 			clicking on the marker area
@@ -99,14 +105,10 @@ WFSInterface : WFSObject {
 			   dictionaries that store the parameters for all the channels
 		*/
 
-		// this is important -- the functions called by marker area and position number boxes
-		// rely on this member variable.
 		activeChannel = channelNum;
 
 		// *** both of the following GUI elements call loadActiveChannel
-		// so, somehow these calls should be filtered. but for now, the redundancy
-		// should be less of a problem than forcing extra calls for everything that
-		// uses this function (gui actions, add/remove channels/preset load calls, etc.)
+		// so, they are setting themselves in this function. watch for problems.
 		channelWidgets['channelDisplay'].value = activeChannel;
 		globalWidgets['locationMarkerArea'].currentIndex = activeChannel;
 
@@ -448,6 +450,10 @@ WFSInterface : WFSObject {
 		this.setParam('channelSequenceMenu', val);
 	}
 
+	setChannelLoop { |val|
+		this.setParam('channelLoopButton', val);
+	}
+	
 	// global functions
 
 	setGlobalPlay {
@@ -832,7 +838,8 @@ WFSInterface : WFSObject {
 			    .states_([
 					["loop", Color.black, Color.grey],
 					["loop", Color.black, Color.yellow]
-				]);
+				])
+			    .action_({ |obj| this.setChannelLoop(obj.value); });
 		);
 		
 		// disable the channel controls until a sound source is added
