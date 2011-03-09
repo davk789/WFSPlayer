@@ -126,7 +126,7 @@ WFSEngine : WFSObject {
 
 	}
 
-	removeChannel { |chan|
+	removeChannel { |chan=0|
 		s.sendMsg('n_set', inputChannelNodes[chan], 'gate', 0);
 		s.sendMsg('n_free', inputChannelNodes[chan]);
 
@@ -138,6 +138,24 @@ WFSEngine : WFSObject {
 			inBusCounter = 20; // go back to the default value if removing the last channel
 		}
 		// ... is there anything else missing here?
+	}
+
+
+	loadPreset {
+		/*
+			remove the channels that are there, and add new ones.
+		*/
+		// remove the old channels
+		while{synthNodes.size > 0}{
+			this.removeChannel;
+		};
+
+		inBusCounter = 20; // reset the in bus counter
+		
+		// add the channels
+		interface.channelWidgetValues.size.do{ |ind|
+			this.addChannel(ind);
+		};
 	}
 
 	updateAllLocations {

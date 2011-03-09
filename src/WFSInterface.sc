@@ -632,7 +632,6 @@ WFSInterface : WFSObject {
 		globalWidgets = globalWidgets.add(
 			'roomDepthBox' -> NumberBox(initRow, Rect(0, 0, 0, 20))
 			    .value_(100)
-			    .maxVal_(1116) // corresponds to 1 second maximum delay per-speaker
 			    .action_({ |obj| this.setRoomDepth(obj.value); });
 		);
 		

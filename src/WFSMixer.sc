@@ -15,7 +15,7 @@ WFSMixer {
 		^super.new.init_wfsmixer(test);
 	}
 	
-	init_wfsmixer { |suppressEngine|
+	init_wfsmixer { |conditions|
 		s = Server.default;
 		
 		preferences = WFSPreferences();
@@ -24,7 +24,7 @@ WFSMixer {
 		interface = WFSInterface();
 
 		// break early for testing
-		if(suppressEngine == "test"){
+		if(conditions == "test"){
 			this.initializeDeferred;
 			^nil;
 		};
@@ -34,8 +34,10 @@ WFSMixer {
 		};
 
 		// for testing -- when playing itunes through the headphones, specify
-		// the edirol :P
-		s.options.device = ServerOptions.devices[0];
+		// the edirol
+		if(conditions == "twointerface"){
+			s.options.device = ServerOptions.devices[0];
+		};
 		
 		// the delay for the channels exceeds the default limit for server memory 
 		// allocation. 
@@ -90,8 +92,9 @@ WFSMixer {
 		// this breaks the pattern of simply making the same call across the various
 		// subordinate classes. re-name the methods here?
 		values = preferences.loadPreset(filename);
-		sequencer.loadPreset(values[2]); 
+		sequencer.loadPreset(values[2]);
 		interface.loadPreset(values[0], values[1]); // interface depends on the sequencer for menu data
+		engine.loadPreset; // build all the values from the interface
 	}
 
 	// interface functions

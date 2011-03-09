@@ -13,8 +13,11 @@ s.sendMsg('n_trace', 1001);
 //Server.default.options.device = ServerOptions.devices[0];
 ~main = WFSMixer();
 
-~ggOutBus = ~main.engine.getInBus(0);
-~pOutBus = ~main.engine.getInBus(1);
+//~ggOutBus = ~main.addChannel;
+//~pOutBus = ~main.addChannel;
+
+~ggOutBus = ~main.getInBus(0);
+~ggOutBus = ~main.getInBus(0);
 
 ~ggNode = s.nextNodeID;
 s.sendMsg('s_new', 'testWFS', ~ggNode, 0, 1, 'outBus', ~ggOutBus);
