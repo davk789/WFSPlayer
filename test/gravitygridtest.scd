@@ -10,7 +10,7 @@ s.sendMsg('n_trace', 1001);
 
 // this is all that I really need to check the sound
 
-//Server.default.options.device = ServerOptions.devices[0];
+//~main = WFSMixer("edirol");
 ~main = WFSMixer();
 
 //~ggOutBus = ~main.addChannel;

@@ -487,10 +487,7 @@ WFSInterface : WFSObject {
 		channelWidgetValues = data;
 		globalWidgetValues = globalData;
 
-		parent.loadActiveChannel(0);
-		
 		// update the interface
-		// probably no need to avoid iterating twice here, even though it's not the most efficient
 
 		globalWidgetValues.keysValuesDo{ |key, val|
 			globalWidgets[key].value = val;
@@ -516,7 +513,8 @@ WFSInterface : WFSObject {
 		channelWidgets.do{ |obj|
 			obj.enabled = true;
 		};
-		
+
+		parent.loadActiveChannel(0);
 	}
 
 	// global param stuff

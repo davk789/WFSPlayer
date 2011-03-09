@@ -35,7 +35,7 @@ WFSMixer {
 
 		// for testing -- when playing itunes through the headphones, specify
 		// the edirol
-		if(conditions == "twointerface"){
+		if(conditions == "edirol"){
 			s.options.device = ServerOptions.devices[0];
 		};
 		

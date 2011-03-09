@@ -60,4 +60,3 @@ add vertical placement of audio signals
 BUGS:
 noticeable delay artfacts when moving sound sources
 volume attenuation for the panning feature needs to be fine tuned
-loading channel resuls in saved sequence selection not being recalled
