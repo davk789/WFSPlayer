@@ -31,17 +31,18 @@ WFSInterface : WFSObject {
 			'masterVolumeBox' -> -6,
 		];
 		defaultChannelWidgetValues =  Dictionary[
-		    'channelLabel'            -> ("Channel " ++ channelCounter),
+		    'channelLabel'             -> ("Channel " ++ channelCounter),
 			//'audioSourceMenu'         -> 0, // access to the mixer is through code for now
-			'channelLoopButton'       -> 0,  
-			'channelVolumeBox'        -> -6,
-			'channelXPositionBox'     -> 0.1,
-			'channelYPositionBox'     -> 0.1,
+			'channelLoopButton'        -> 0,  
+			'channelVolumeBox'         -> -6,
+			'channelXPositionBox'      -> 0.1,
+			'channelYPositionBox'      -> 0.1,
+			'channelInvertDelayButton' -> 0,
 			// channel sequencer params
-			'channelRecordButton'     -> 0, // this and the recordMode are converted
-			'channelRecordModeButton' -> 1, // to bool when used
-			'channelPlayButton'       -> 0,
-			'channelSequenceMenu'     -> 0,
+			'channelRecordButton'      -> 0, // this and the recordMode are converted
+			'channelRecordModeButton'  -> 1, // to bool when used
+			'channelPlayButton'        -> 0,
+			'channelSequenceMenu'      -> 0,
 		];
 		
 		postln(this.class.asString ++ " initialized");
@@ -68,7 +69,9 @@ WFSInterface : WFSObject {
 		
 		sequencer.stopAction = { |index| // any args that need to be passed?
 			var stopCondition;
-			stopCondition = channelWidgetValues[index]['channelLoopButton'].toBool && channelWidgetValues[index]['channelPlayButton'].toBool;
+			stopCondition =
+			    channelWidgetValues[index]['channelLoopButton'].toBool
+			    && channelWidgetValues[index]['channelPlayButton'].toBool;
 			if(stopCondition){
 				sequencer.playSequence(index, channelWidgetValues[index]['channelSequenceMenu']);
 			}{
@@ -384,12 +387,12 @@ WFSInterface : WFSObject {
 		this.setParam('channelVolumeBox', vol);
 		engine.setChannelVolume(activeChannel, this.getParam('channelVolumeBox'));
 	}
-	/*
-	setChannelAudioSource { |source|
-		// again -- this functionality needs to be implemented in the engine
-		this.setParam('audioSourceMenu', source);
+
+	setChannelInvertDelay { |choice|
+		// engine accesses this value, no need to push to engine
+		this.setParam('channelInvertDelayButton', choice);
 	}
-	*/
+	
 	setChannelRecord { |val|
 		/**
 			called from the record button
@@ -750,6 +753,15 @@ WFSInterface : WFSObject {
 			    .action_({ |obj| this.setChannelYPosition(obj.value) });
 		);
 
+		channelWidgets = channelWidgets.add(
+			'channelInvertDelayButton' -> Button(channelRow, Rect(0, 0, 0, 20))
+			    .states_([
+					["invert delay", Color.white, Color.black],
+					["invert delay", Color.black, Color.yellow]
+				])
+			    .action_({ |obj| this.setChannelInvertDelay(obj.value); })
+		);
+		
 		channelWidgets = channelWidgets.add(
 			'removeChannelButton' -> Button(channelRow, Rect(0, 0, 0, 20))
 			    .states_([["remove channel", Color.red, Color.black]])

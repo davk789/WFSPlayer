@@ -51,9 +51,9 @@ util/WFSScrollingNumberBox.sc
 *********** notes ***********
 
 TODO:
-add a "loop" option to the sequencer
 add inverse option to place the sounds in front of the speaker array
 ... wish list
+add a global "loop" option to the sequencer
 add drawing/algorithmic sequencing features
 add vertical placement of audio signals
 

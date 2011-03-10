@@ -6,6 +6,7 @@ WFSEngine : WFSObject {
 	  */
 
 	// store as internal units: meters and absolute amplitude
+	var maxDelay=0.5; // calculation of longest possible delay
 	var channelVolumes; // should this be kept in a better spot?
 	var roomDepth=10, roomWidth=10, masterVolume=1, airTemperature=23; // these should be static variables
 	var synthParams, defaultParams, s;
@@ -68,6 +69,7 @@ WFSEngine : WFSObject {
 		var newChannelNode = s.nextNodeID;
 		var newNodes = Array();
 		var newParams = Array();
+		var channelIndex = index ? interface.channelWidgetValues.lastIndex;
 
 		// initialize all synth params in this function
 		
@@ -109,20 +111,30 @@ WFSEngine : WFSObject {
 		synthNodes = synthNodes.add(newNodes);
 		synthParams = synthParams.add(newParams);
 
-		// initialize the delay times and speaker attenuation
-		if(index.notNil){
-			locationValue = interface.globalWidgets['locationMarkerArea'].value[index];
-		}{
-			locationValue = interface.globalWidgets['locationMarkerArea'].value.last
-		};
-		
+		// get room width and depth
+		// accessing the gui in case the value is set on the widget but the action is not tiggered
+		// i.e. "enter" was not pressed after the value was typed in to the box
+		roomWidth = interface.globalWidgets['roomWidthBox'].value;
+		roomDepth = interface.globalWidgets['roomDepthBox'].value;
+
+		// get the max delay value for inverted delay calc
+		this.calculateMaxDelay;
+
+		// set delay values for the speakers
 		this.updateLocation(
-			synthParams.lastIndex,
-			locationValue
+			synthParams.lastIndex, // this should be drawn from the provided argument
+			// but I won't mess with if nothing is broken right now
+			interface.globalWidgets['locationMarkerArea'].value[channelIndex]
 		);
 
 	}
 
+	calculateMaxDelay {
+		var maxDistance;
+		maxDistance = this.calculateDistance(roomWidth, roomDepth);
+		maxDelay = this.distanceToTime(maxDistance);
+	}
+	
 	removeChannel { |chan=0|
 		s.sendMsg('n_set', inputChannelNodes[chan], 'gate', 0);
 		s.sendMsg('n_free', inputChannelNodes[chan]);
@@ -170,12 +182,19 @@ WFSEngine : WFSObject {
 		var roomAdjust = numChannels / (numChannels - 1);
 
 		numChannels.do{ |ind|
-			var xSpeaker, distance, delay, level;
+			var xSpeaker, distance, delay, level, delayInvert;
 
 			xSpeaker = ((ind * roomAdjust) / numChannels) * roomWidth;
 			distance = this.calculateDistance(xLoc - xSpeaker, yLoc);
 
-			delay = this.distanceToTime(distance);
+			delayInvert = interface.channelWidgetValues[chan]['channelInvertDelayButton'].toBool;
+
+			if(delayInvert){
+				delay = maxDelay - this.distanceToTime(distance);
+			}{
+				delay = this.distanceToTime(distance);
+			};
+			
 			synthParams[chan][ind]['delayTime'] = delay;
 
 			/*
