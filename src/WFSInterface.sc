@@ -496,6 +496,9 @@ WFSInterface : WFSObject {
 		channelWidgetValues = data;
 		globalWidgetValues = globalData;
 
+		channelWidgetValues.do{ |obj|
+			postf("the channel delay invert value is %\n", obj['channelInvertDelayButton']);
+		};
 		// update the interface
 
 		globalWidgetValues.keysValuesDo{ |key, val|
