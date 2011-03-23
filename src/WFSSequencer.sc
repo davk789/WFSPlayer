@@ -14,7 +14,7 @@ WFSSequencer : WFSObject {
 	var <sequences; // the array of sequences
 	var stopFlags;
 	var clock;
-	var <>action, <>stopAction; // the sequencer callback functions
+	var <>moveAction, <>stopAction, <>startAction; // the sequencer callback functions
 	var playbackRoutine;
 	
 	*new {
@@ -23,7 +23,6 @@ WFSSequencer : WFSObject {
 
 	init_wfssequencer {
 		/**
-			
 			the schema of the array should be as follows:
 			
 			Array[ // sequences
@@ -37,14 +36,16 @@ WFSSequencer : WFSObject {
 			]
 		  */
 
-		action = {};
+		startAction = {};
+		moveAction = {};
+		stopAction = {};
 		/*
 			still not sure what the best storage for the params and the stop flags would
 			be, but this works well enough for now.
 		*/
 		sequences = Array();
 		stopFlags = Array(); 
-		clock = TempoClock(1); // is this the clock that I want to use?
+		clock = TempoClock(1);
 
 		postln(this.class.asString ++ " initialized");
 	}
@@ -63,6 +64,16 @@ WFSSequencer : WFSObject {
 
 		sequences.removeAt(chanToKill);
 		stopFlags.removeAt(chanToKill);
+	}
+
+	// moveAction alias
+
+	action {
+		^moveAction;
+	}
+
+	action_ { |func|
+		moveAction = func;
 	}
 
 	// record functions
@@ -86,7 +97,9 @@ WFSSequencer : WFSObject {
 
 		startTime = sequences[chan][seq][0];
 		sequence = sequences[chan][seq][1];
-		
+
+		startAction.value(this, chan); // should this be passing itself?
+
 		clock.sched(0, {
 			var wait;
 			
@@ -102,10 +115,12 @@ WFSSequencer : WFSObject {
 			stopFlags[chan] = false;
 			
 			// ** playback action **
-			action.value(sequence[index][1], chan);
+			interface.updateMove(chan, sequence[index][1]);
+			moveAction.value(this, chan, sequence[index][1]);
 
 			if(wait.isNil){
-				stopAction.value(chan); // execute cleanup code
+				interface.updateStop(chan);
+				stopAction.value(this, chan); // execute cleanup code
 			};
 			
 			index = index + 1;

@@ -97,6 +97,39 @@ WFSMixer {
 		engine.loadPreset; // build all the values from the interface
 	}
 
+	// aliases for moveAction
+	action {
+		^sequencer.moveAction;
+	}
+
+	action_ { |func|
+		sequencer.moveAction = func;
+	}
+
+	startAction {
+		^sequencer.startAction;
+	}
+
+	startAction_ { |func|
+		sequencer.startAction = func;
+	}
+	
+	stopAction {
+		^sequencer.stopAction;
+	}
+
+	stopAction_ { |func|
+		sequencer.stopAction = func;
+	}	
+
+	moveAction {
+		^sequencer.moveAction;
+	}
+
+	moveAction_ { |func|
+		sequencer.moveAction = func;
+	}
+	
 	// interface functions
 
 	getInBus { |chan|

@@ -10,6 +10,9 @@ WFSInterface : WFSObject {
 	var controlViewWindow, initRow, globalRow, channelRow, transportRow;
 	var <globalWidgets, <channelWidgets; // all gui elements are kept in a Dict for easy access
 
+	// update the interface. the sequencer calls these functions directly
+	var <updateMoveAction, <updateStopAction;
+
 	// parameter defaults and storage
 	var defaultChannelWidgetValues;
 	var <channelWidgetValues, <globalWidgetValues;
@@ -52,36 +55,32 @@ WFSInterface : WFSObject {
 		// startup functions
 		// this relies on the sequencer, so, put it in initDeferred
 		this.makeGUI;
-		// setting the action must be done after the gui is initialized
-		this.makeSequencerActions;
 
 		globalWidgetValues.keysValuesDo{ |key,val|
 			globalWidgets[key].value = val;
 		}
 	}
 
-	makeSequencerActions {
-		sequencer.action = { |val, index|
-			// no need to defer the actions here?
-			globalWidgets['locationMarkerArea'].setValueForIndex(index, val);
-			engine.updateLocation(index, val);
-		};
-		
-		sequencer.stopAction = { |index| // any args that need to be passed?
-			var stopCondition;
-			stopCondition =
-			    channelWidgetValues[index]['channelLoopButton'].toBool
-			    && channelWidgetValues[index]['channelPlayButton'].toBool;
-			if(stopCondition){
-				sequencer.playSequence(index, channelWidgetValues[index]['channelSequenceMenu']);
-			}{
-				channelWidgetValues[index]['channelPlayButton'] = 0;
-				
-				if(index == activeChannel){
-					channelWidgets['channelPlayButton'].value = 0;
-				};
+	// called directly by the sequencer
+	updateMove { |index, val| // aka moveAction
+		globalWidgets['locationMarkerArea'].setValueForIndex(index, val);
+		engine.updateLocation(index, val);
+	}
 
+	updateStop { |index| // any args that need to be passed?
+		var stopCondition;
+		stopCondition =
+		    channelWidgetValues[index]['channelLoopButton'].toBool
+		    && channelWidgetValues[index]['channelPlayButton'].toBool;
+		if(stopCondition){
+			sequencer.playSequence(index, channelWidgetValues[index]['channelSequenceMenu']);
+		}{
+			channelWidgetValues[index]['channelPlayButton'] = 0;
+			
+			if(index == activeChannel){
+				channelWidgets['channelPlayButton'].value = 0;
 			};
+
 		};
 	}
 
