@@ -10,9 +10,6 @@ WFSInterface : WFSObject {
 	var controlViewWindow, initRow, globalRow, channelRow, transportRow;
 	var <globalWidgets, <channelWidgets; // all gui elements are kept in a Dict for easy access
 
-	// update the interface. the sequencer calls these functions directly
-	var <updateMoveAction, <updateStopAction;
-
 	// parameter defaults and storage
 	var defaultChannelWidgetValues;
 	var <channelWidgetValues, <globalWidgetValues;

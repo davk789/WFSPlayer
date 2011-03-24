@@ -15,6 +15,7 @@ WFSObject {
 
 	getEnvironment { |par|
 		/* pass the enclosing envronment to the object */
+		postln("passing the environment in " ++ this.class.asString);
 		parent = par;
 		// this function is called by each class, so one of these definitions will 
 		// be self-referential. I think that "this" and "sequencer" in WFSSequencer
@@ -23,6 +24,7 @@ WFSObject {
 		sequencer = parent.sequencer;
 		engine = parent.engine;
 		interface = parent.interface;
+		postf("% % % %\n", prefManager, sequencer, engine, interface);
 	}
 
 	// maybe throw subclassResponsibility errors later, for now, allow execution to

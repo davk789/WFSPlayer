@@ -59,7 +59,10 @@ WFSMixer {
 		//		s.sendMsg('dumpOSC', 1);
 		
 		preferences.getEnvironment(this); // doesn't use the environment yet but will soon
-		//sequencer.getEnvironment(this); // sequencer doesn't need the environment
+		// the sequencer now calls the interface directly
+		// and then calls a callback function, rather than providing the interface with
+		// a callback that will then be used only to update the gui
+		sequencer.getEnvironment(this);
 		engine.getEnvironment(this); // engine does not use the environment yet
 		interface.getEnvironment(this);
 		// initialize local representation of the environment for the objects
