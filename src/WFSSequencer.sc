@@ -16,7 +16,6 @@ WFSSequencer : WFSObject {
 	var clock;
 	var <>moveAction, <>stopAction, <>startAction; // the sequencer callback functions
 	var playbackRoutine;
-	var <>monitor=false;
 	
 	*new {
 		^super.new.init_wfssequencer;
@@ -52,7 +51,6 @@ WFSSequencer : WFSObject {
 	}
 
 	addChannel {
-		postln("adding a channel, the interface is " ++ interface.class.asString);
 		sequences = sequences.add(Array());
 		stopFlags = stopFlags.add(false);
 	}
@@ -100,7 +98,8 @@ WFSSequencer : WFSObject {
 		startTime = sequences[chan][seq][0];
 		sequence = sequences[chan][seq][1];
 
-		startAction.value(this, chan); // should this be passing itself?
+		startAction.value(parent, chan); // passing the top-level mixer
+		                                 // hopefully that is okay
 
 		clock.sched(0, {
 			var wait;
@@ -117,14 +116,12 @@ WFSSequencer : WFSObject {
 			stopFlags[chan] = false;
 			
 			// ** playback action **
-			postln("trying to play back");
-			postf("% % % %\n", prefManager, sequencer, engine, interface);
 			interface.updateMove(chan, sequence[index][1]);
-			moveAction.value(this, chan, sequence[index][1]);
+			moveAction.value(parent, chan, sequence[index][1]);
 
 			if(wait.isNil){
 				interface.updateStop(chan);
-				stopAction.value(this, chan); // execute cleanup code
+				stopAction.value(parent, chan); // execute cleanup code
 			};
 			
 			index = index + 1;

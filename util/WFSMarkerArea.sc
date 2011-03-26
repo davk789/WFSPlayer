@@ -211,4 +211,12 @@ WFSMarkerArea : JSCUserView {
 		currentIndex = ind;
 		this.refresh;
 	}
+
+	currentValue {
+		^this.getValueForIndex(currentIndex);
+	}
+
+	currentValue_ { |val|
+		this.setValueForIndex(currentIndex, val);
+	}
 }

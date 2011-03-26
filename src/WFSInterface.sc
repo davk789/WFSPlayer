@@ -19,8 +19,6 @@ WFSInterface : WFSObject {
 	}
 	
 	init_wfsinterface {
-		// member data
-		
 		globalWidgets = Dictionary();
 		channelWidgets = Dictionary();
 		globalWidgetValues = Dictionary[
@@ -402,12 +400,12 @@ WFSInterface : WFSObject {
 		record = this.getParam('channelRecordButton').toBool;
 		
 		onMove = this.getParam('channelRecordModeButton').toBool;
-		
-		case{record && onMove.not}{
-			// initialize the recording
-			sequencer.prepareRecording(activeChannel);
-		}
-		{record.not}{
+
+		if(record){
+			if(onMove.not){
+				sequencer.prepareRecording(activeChannel);
+			}
+		}{
 			this.updateSequencerMenu;
 		};
 	}
@@ -692,7 +690,10 @@ WFSInterface : WFSObject {
 			'locationMarkerArea' -> WFSMarkerArea(controlViewWindow, Rect(0, 0, 475, 475))
 			    .canAddMarker_(false)
 			    .mouseDownAction_({ |obj| parent.loadActiveChannel(obj.currentIndex); })
-			    .mouseMoveAction_({ |obj| this.setSoundLocation(obj.value); });
+			    .mouseMoveAction_({ |obj|
+					this.setSoundLocation(obj.value);
+					sequencer.moveAction.value(parent, activeChannel, obj.currentValue);
+				});
 		);
 		
 		// channel control row
@@ -817,7 +818,8 @@ WFSInterface : WFSObject {
 		        .action_({ |obj|
 					channelWidgets['channelPlayButton'].valueAction = 0;
 					channelWidgets['channelRecordButton'].valueAction = 0;
-					// -- probably doesn't need its own function
+					// pass along the callback.
+					sequencer.stopAction.value(parent,activeChannel);					
 				});
 		);
 		
@@ -825,7 +827,14 @@ WFSInterface : WFSObject {
 			'channelRecordButton' -> Button(transportRow, Rect(0, 0, 0, 20))
 			    .states_([["o", Color.red, Color.black], ["o", Color.black, Color.red]])
 			    .font_(Font("Arial Black", 12))
-			    .action_({ |obj| this.setChannelRecord(obj.value) });
+			    .action_({ |obj|
+					this.setChannelRecord(obj.value);
+					if(obj.value == 1){
+						// pass along the callbacks
+						channelWidgets['channelPlayButton'].value = 1;
+						sequencer.startAction.value(parent, activeChannel); //
+					};
+				});
 		);
 		
 

@@ -8,10 +8,20 @@ s.queryAllNodes;
 s.sendMsg('n_trace', 1002);
 s.sendMsg('n_trace', 1001);
 
-// this is all that I really need to check the sound
+~main = WFSMixer("edirol");
+//~main = WFSMixer();
 
-//~main = WFSMixer("edirol");
-~main = WFSMixer();
+// a section to test the callbacks
+
+~main.startAction = { |seq,chan| ["start",seq,chan].postln; };
+~main.action = { |seq,chan,val| nil; };
+~main.stopAction = { |seq,chan| ["stop",seq,chan].postln; };
+
+
+
+
+
+// this is all that I really need to check the sound
 
 //~ggOutBus = ~main.addChannel;
 //~pOutBus = ~main.addChannel;
