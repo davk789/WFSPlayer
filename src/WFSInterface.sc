@@ -29,18 +29,19 @@ WFSInterface : WFSObject {
 			'masterVolumeBox' -> -6,
 		];
 		defaultChannelWidgetValues =  Dictionary[
-		    'channelLabel'             -> ("Channel " ++ channelCounter),
-			//'audioSourceMenu'         -> 0, // access to the mixer is through code for now
-			'channelLoopButton'        -> 0,  
-			'channelVolumeBox'         -> -6,
-			'channelXPositionBox'      -> 0.1,
-			'channelYPositionBox'      -> 0.1,
-			'channelInvertDelayButton' -> 0,
+		    'channelLabel'               -> ("Channel " ++ channelCounter),
+			//'audioSourceMenu'          -> 0, // access to the mixer is through code for now
+			'channelLoopButton'          -> 0,  
+			'channelVolumeBox'           -> -6,
+			'channelXPositionBox'        -> 0.1,
+			'channelYPositionBox'        -> 0.1,
+			'channelInvertDelayButton'   -> 0,
 			// channel sequencer params
-			'channelRecordButton'      -> 0, // this and the recordMode are converted
-			'channelRecordModeButton'  -> 1, // to bool when used
-			'channelPlayButton'        -> 0,
-			'channelSequenceMenu'      -> 0,
+			'channelRecordButton'        -> 0, // this and the recordMode are converted
+			'channelRecordModeButton'    -> 1, // to bool when used
+			'channelRecordMonitorButton' -> 1,
+			'channelPlayButton'          -> 0,
+			'channelSequenceMenu'        -> 0,
 		];
 		
 		postln(this.class.asString ++ " initialized");
@@ -442,6 +443,10 @@ WFSInterface : WFSObject {
 		this.setParam('channelRecordModeButton', val);
 	}
 
+	setChannelRecordMonitor { |val|
+		this.setParam('channelRecordMonitorButton', val);
+	}
+	
 	setActiveSequence { |val|
 		// store the value only
 		this.setParam('channelSequenceMenu', val);
@@ -452,7 +457,7 @@ WFSInterface : WFSObject {
 	}
 	
 	// global functions
-
+	
 	setGlobalPlay {
 		
 		channelWidgetValues.do{ |obj,ind|
@@ -688,7 +693,9 @@ WFSInterface : WFSObject {
 			    .mouseDownAction_({ |obj| parent.loadActiveChannel(obj.currentIndex); })
 			    .mouseMoveAction_({ |obj|
 					this.setSoundLocation(obj.value);
-					sequencer.moveAction.value(parent, activeChannel, obj.currentValue);
+					if(this.getParam('channelRecordMonitorButton').toBool){
+						sequencer.moveAction.value(parent, activeChannel, obj.currentValue);
+					};
 				});
 		);
 		
@@ -793,6 +800,21 @@ WFSInterface : WFSObject {
 			    .recordAction_({ |obj| this.setChannelRecord(obj) });
 			);*/
 
+
+		channelWidgets = channelWidgets.add(
+			'channelSequenceClearButton' -> Button(transportRow, Rect(0, 0, 0, 20))
+			    .states_([["clear sequence", Color.black, Color.grey]]);
+		);
+		
+		channelWidgets = channelWidgets.add(
+			'channelLoopButton' -> Button(transportRow, Rect(0, 0, 0, 20))
+			    .states_([
+					["loop", Color.black, Color.grey],
+					["loop", Color.black, Color.yellow]
+				])
+			    .action_({ |obj| this.setChannelLoop(obj.value); });
+		);
+		
 		channelWidgets = channelWidgets.add(
 			'channelPlayButton' -> Button(transportRow, Rect(0, 0, 0, 20))
 		    .states_([[">", Color.white, Color.black], [">", Color.black, Color.white]])
@@ -808,7 +830,8 @@ WFSInterface : WFSObject {
 		        .font_(Font("Arial Black", 12))
 		        .action_({ |obj|
 					// call the callback if the sequencer is not playing this channel
-					if(sequencer.isPlaying(activeChannel).not){
+					if(sequencer.isPlaying(activeChannel).not
+						&& this.getParam('channelRecordMonitorButton').toBool){
 						sequencer.stopAction.value(parent,activeChannel);
 					};
 					channelWidgets['channelPlayButton'].valueAction = 0;
@@ -822,7 +845,8 @@ WFSInterface : WFSObject {
 			    .font_(Font("Arial Black", 12))
 			    .action_({ |obj|
 					this.setChannelRecord(obj.value);
-					if(obj.value == 1){
+					if(obj.value == 1
+						&& this.getParam('channelRecordMonitorButton').toBool){
 						// pass along the callbacks
 						sequencer.startAction.value(parent, activeChannel);
 					};
@@ -841,19 +865,15 @@ WFSInterface : WFSObject {
 		);
 
 		channelWidgets = channelWidgets.add(
-			'channelSequenceClearButton' -> Button(transportRow, Rect(0, 0, 0, 20))
-			    .states_([["clear sequence", Color.black, Color.grey]]);
-		);
-		
-		channelWidgets = channelWidgets.add(
-			'channelLoopButton' -> Button(transportRow, Rect(0, 0, 0, 20))
+			'channelRecordMonitorButton' -> Button(transportRow, Rect(0, 0, 0, 20))
 			    .states_([
-					["loop", Color.black, Color.grey],
-					["loop", Color.black, Color.yellow]
+					["record monitor", Color.black, Color.grey],
+					["record monitor", Color.black, Color.yellow]
 				])
-			    .action_({ |obj| this.setChannelLoop(obj.value); });
+			    .value_(1)
+			    .action_({ |obj| this.setChannelRecordMonitor(obj.value); });
 		);
-		
+
 		// disable the channel controls until a sound source is added
 		globalWidgets['locationMarkerArea'].enabled = false;
 		

@@ -153,7 +153,9 @@ WFSSequencer : WFSObject {
 	}
 
 	isPlaying { |chan|
-		^playFlags[chan]; // very shitty
+		^playFlags[chan]; // very shitty. playFlags should probably just be exposed
+		// but I will leave it like this for now, until I need to access the
+		// isPlaying flags at some other time
 	}
 	
 }
