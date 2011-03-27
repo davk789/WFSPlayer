@@ -414,6 +414,14 @@ WFSInterface : WFSObject {
 	setChannelPlay { |val|
 		var play, seq;
 
+		// if there are no sequences in the current channel, then
+		// break out of the function
+		if(channelWidgets['channelSequenceMenu'].items.isNil
+			|| channelWidgets['channelSequenceMenu'].items.size == 0){
+			channelWidgets['channelPlayButton'].value = 0;
+			^nil;
+		};
+		
 		this.setParam('channelPlayButton', val);
 		play = this.getParam('channelPlayButton').toBool;
 

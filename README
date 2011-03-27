@@ -51,7 +51,6 @@ util/WFSScrollingNumberBox.sc
 *********** notes ***********
 
 TODO:
-make callbacks on record optional
 handle multiple instances by using static variables
 programmatically load presets
 ... wish list
@@ -60,7 +59,6 @@ add drawing/algorithmic sequencing features
 add vertical placement of audio signals
 
 BUGS:
-calling play with no sequences generates an unhandled error -- this needs to be handled
 MouseUp/mouseDown interrupts the recording.
 noticeable delay artfacts when moving sound sources
 volume attenuation for the panning feature needs to be fine tuned
