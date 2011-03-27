@@ -650,10 +650,6 @@ WFSInterface : WFSObject {
 		);
 		*/
 
-		StaticText(globalRow, Rect(0, 0, 0, 80))
-			.string_("add controls with functionality")
-			.stringColor_(Color.white);
-
 		globalWidgets = globalWidgets.add(
 			'globalPlayButton' -> Button(globalRow, Rect(0, 0, 0, 20))
 		        .states_([[">", Color.blue(0.45), Color.white]])
@@ -797,11 +793,6 @@ WFSInterface : WFSObject {
 			    .recordAction_({ |obj| this.setChannelRecord(obj) });
 			);*/
 
-		StaticText(transportRow, Rect(0, 0, 0, 80))
-		    .string_("add buttons at the same time as their functions!")
-		    .font_(Font("Arial Narow", 12))
-		    .stringColor_(Color.white);
-
 		channelWidgets = channelWidgets.add(
 			'channelPlayButton' -> Button(transportRow, Rect(0, 0, 0, 20))
 		    .states_([[">", Color.white, Color.black], [">", Color.black, Color.white]])
@@ -816,10 +807,12 @@ WFSInterface : WFSObject {
 		        .states_([["[]", Color.white, Color.black]])
 		        .font_(Font("Arial Black", 12))
 		        .action_({ |obj|
+					// call the callback if the sequencer is not playing this channel
+					if(sequencer.isPlaying(activeChannel).not){
+						sequencer.stopAction.value(parent,activeChannel);
+					};
 					channelWidgets['channelPlayButton'].valueAction = 0;
 					channelWidgets['channelRecordButton'].valueAction = 0;
-					// pass along the callback.
-					sequencer.stopAction.value(parent,activeChannel);					
 				});
 		);
 		
@@ -831,8 +824,7 @@ WFSInterface : WFSObject {
 					this.setChannelRecord(obj.value);
 					if(obj.value == 1){
 						// pass along the callbacks
-						channelWidgets['channelPlayButton'].value = 1;
-						sequencer.startAction.value(parent, activeChannel); //
+						sequencer.startAction.value(parent, activeChannel);
 					};
 				});
 		);

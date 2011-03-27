@@ -12,7 +12,9 @@ WFSSequencer : WFSObject {
 	*/
 
 	var <sequences; // the array of sequences
-	var stopFlags;
+	// stopFlags trigger the the routine to end, the playFlags describe
+	// what is playing. 
+	var stopFlags, playFlags;
 	var clock;
 	var <>moveAction, <>stopAction, <>startAction; // the sequencer callback functions
 	var playbackRoutine;
@@ -44,7 +46,8 @@ WFSSequencer : WFSObject {
 			be, but this works well enough for now.
 		*/
 		sequences = Array();
-		stopFlags = Array(); 
+		stopFlags = Array();
+		playFlags = Array();
 		clock = TempoClock(1);
 
 		postln(this.class.asString ++ " initialized");
@@ -53,6 +56,7 @@ WFSSequencer : WFSObject {
 	addChannel {
 		sequences = sequences.add(Array());
 		stopFlags = stopFlags.add(false);
+		playFlags = playFlags.add(false);
 	}
 
 	removeChannel { |chan|
@@ -64,6 +68,7 @@ WFSSequencer : WFSObject {
 
 		sequences.removeAt(chanToKill);
 		stopFlags.removeAt(chanToKill);
+		playFlags.removeAt(chanToKill);
 	}
 
 	// moveAction alias
@@ -95,6 +100,7 @@ WFSSequencer : WFSObject {
 		var sequence, startTime;
 		var index=0;
 
+		playFlags[chan] = true;
 		startTime = sequences[chan][seq][0];
 		sequence = sequences[chan][seq][1];
 
@@ -120,8 +126,8 @@ WFSSequencer : WFSObject {
 			moveAction.value(parent, chan, sequence[index][1]);
 
 			if(wait.isNil){
-				interface.updateStop(chan);
-				stopAction.value(parent, chan); // execute cleanup code
+				interface.updateStop(chan); // execute cleanup code
+				stopAction.value(parent, chan);
 			};
 			
 			index = index + 1;
@@ -131,6 +137,7 @@ WFSSequencer : WFSObject {
 	}
 
 	stop { |channel|
+		playFlags[channel] = false;
 		stopFlags[channel] = true;
 	}
 
@@ -144,4 +151,9 @@ WFSSequencer : WFSObject {
 		stopFlags = Array.fill(sequences.size, { true; });
 
 	}
+
+	isPlaying { |chan|
+		^playFlags[chan]; // very shitty
+	}
+	
 }

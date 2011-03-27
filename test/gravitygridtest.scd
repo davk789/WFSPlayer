@@ -14,7 +14,7 @@ s.sendMsg('n_trace', 1001);
 // a section to test the callbacks
 
 ~main.startAction = { |seq,chan| ["start",seq,chan].postln; };
-~main.action = { |seq,chan,val| nil; };
+~main.action = { |seq,chan,val| ["move",seq,chan,val].postln; };
 ~main.stopAction = { |seq,chan| ["stop",seq,chan].postln; };
 
 
