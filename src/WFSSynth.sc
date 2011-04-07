@@ -301,10 +301,12 @@ WFSEngine : WFSObject {
 				aEnv = EnvGen.ar(Env.asr(0.5, 1, 0.5, 'exponential'), gate, doneAction:2);
 				// gain = per-channel attenuation, lev = per-input level
 				aIn = In.ar(inBus);
-				aSig = DelayN.ar(
+				aSig = DelayC.ar(
 					aIn,
 					i_maxDelay,
-					delayTime,
+					// this seems to work okay for smaller spaces/sounds that don't 
+					// move too fast
+					Lag.kr(delayTime, 0.1),//delayTime,
 					lev * channelVol * masterVol
 				);
 

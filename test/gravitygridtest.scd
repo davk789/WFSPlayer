@@ -8,6 +8,8 @@ s.queryAllNodes;
 s.sendMsg('n_trace', 1002);
 s.sendMsg('n_trace', 1001);
 
+WFSEngine.loadSynthDef
+
 ~main = WFSMixer("edirol");
 //~main = WFSMixer();
 
@@ -18,13 +20,10 @@ s.sendMsg('n_trace', 1001);
 ~main.stopAction = { |seq,chan| ["stop",seq,chan].postln; };
 
 
-
-
-
 // this is all that I really need to check the sound
 
-//~ggOutBus = ~main.addChannel;
-//~pOutBus = ~main.addChannel;
+~ggOutBus = ~main.addChannel;
+~pOutBus = ~main.addChannel;
 
 ~ggOutBus = ~main.getInBus(0);
 ~pOutBus = ~main.getInBus(1);

@@ -121,7 +121,7 @@ WFSInterface : WFSObject {
 		onMove = this.getParam('channelRecordModeButton').toBool;
 		isRecording = this.getParam('channelRecordButton').toBool;
 
-		if(onMove && isRecording){
+		if(onMove && isRecording && sequencer.isRecording(activeChannel).not){
 			sequencer.prepareRecording(activeChannel);
 		};
 		

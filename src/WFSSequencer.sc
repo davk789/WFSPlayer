@@ -14,7 +14,7 @@ WFSSequencer : WFSObject {
 	var <sequences; // the array of sequences
 	// stopFlags trigger the the routine to end, the playFlags describe
 	// what is playing. 
-	var stopFlags, playFlags;
+	var flags; // stop, record, play
 	var clock;
 	var <>moveAction, <>stopAction, <>startAction; // the sequencer callback functions
 	var playbackRoutine;
@@ -41,13 +41,9 @@ WFSSequencer : WFSObject {
 		startAction = {};
 		moveAction = {};
 		stopAction = {};
-		/*
-			still not sure what the best storage for the params and the stop flags would
-			be, but this works well enough for now.
-		*/
+
 		sequences = Array();
-		stopFlags = Array();
-		playFlags = Array();
+		flags = Array();
 		clock = TempoClock(1);
 
 		postln(this.class.asString ++ " initialized");
@@ -55,8 +51,7 @@ WFSSequencer : WFSObject {
 
 	addChannel {
 		sequences = sequences.add(Array());
-		stopFlags = stopFlags.add(false);
-		playFlags = playFlags.add(false);
+		flags = flags.add(Dictionary['stop' -> false, 'record' -> false, 'play' -> false, ])
 	}
 
 	removeChannel { |chan|
@@ -67,8 +62,7 @@ WFSSequencer : WFSObject {
 		chanToKill = chan ?? { sequences.lastIndex };
 
 		sequences.removeAt(chanToKill);
-		stopFlags.removeAt(chanToKill);
-		playFlags.removeAt(chanToKill);
+		flags.removeAt(chanToKill);
 	}
 
 	// moveAction alias
@@ -87,6 +81,7 @@ WFSSequencer : WFSObject {
 		/*
 			add a new sequence to initiate a new recording
 		*/
+		flags[channel]['record'] = true;
 		sequences[channel] = sequences[channel].add([clock.beats, Array()]);
 	}
 
@@ -100,7 +95,7 @@ WFSSequencer : WFSObject {
 		var sequence, startTime;
 		var index=0;
 
-		playFlags[chan] = true;
+		flags[chan]['play'] = true;
 		startTime = sequences[chan][seq][0];
 		sequence = sequences[chan][seq][1];
 
@@ -113,13 +108,13 @@ WFSSequencer : WFSObject {
 			case{index == 0}{
 				wait = sequence[index][0] - startTime;
 			}
-			{(index == sequence.lastIndex) || stopFlags[chan]}{
+			{(index == sequence.lastIndex) || flags[chan]['stop']}{
 				wait = nil;
 			}{
 				wait = sequence[index][0] - sequence[index - 1][0];
 			};
 
-			stopFlags[chan] = false;
+			flags[chan]['stop'] = false;
 			
 			// ** playback action **
 			interface.updateMove(chan, sequence[index][1]);
@@ -137,25 +132,30 @@ WFSSequencer : WFSObject {
 	}
 
 	stop { |channel|
-		playFlags[channel] = false;
-		stopFlags[channel] = true;
+		flags[channel] = Dictionary['play' -> false, 'record' -> false, 'stop' -> true, ]
 	}
 
 	loadPreset { |sequence|
 		// stop any playing sequences
-		stopFlags.size.do{ |ind|
-			stopFlags[ind] = true;
+		flags.size.do{ |ind|
+			flags[ind]['stop'] = true;
 		};
 
 		sequences = sequence;
-		stopFlags = Array.fill(sequences.size, { true; });
+		flags = Array.fill(sequences.size, {
+			Dictionary['play' -> false, 'record' -> false, 'stop' -> false, ];
+		});
 
 	}
 
 	isPlaying { |chan|
-		^playFlags[chan]; // very shitty. playFlags should probably just be exposed
+		^flags[chan]['play']; // very shitty. playFlags should probably just be exposed
 		// but I will leave it like this for now, until I need to access the
 		// isPlaying flags at some other time
+	}
+	
+	isRecording { |chan|
+		^flags[chan]['record'];
 	}
 	
 }
