@@ -92,7 +92,7 @@ WFSInterface : WFSObject {
 	}
 
 	loadActiveChannel { |channelNum=0|
-		var values, onMove, isRecording;
+		var values, onMove, isRecording, alreadyRecording;
 		/**
 			This is basically called when the GUI needs updating by adding a channel or
 			clicking on the marker area
@@ -120,8 +120,9 @@ WFSInterface : WFSObject {
 		// prepare for recording if the onMove flag is set
 		onMove = this.getParam('channelRecordModeButton').toBool;
 		isRecording = this.getParam('channelRecordButton').toBool;
-
-		if(onMove && isRecording && sequencer.isRecording(activeChannel).not){
+		alreadyRecording = sequencer.isRecording(activeChannel);
+		
+		if(onMove && isRecording && alreadyRecording.not){
 			sequencer.prepareRecording(activeChannel);
 		};
 		
@@ -403,10 +404,13 @@ WFSInterface : WFSObject {
 		onMove = this.getParam('channelRecordModeButton').toBool;
 
 		if(record){
+			this.setChannelPlay(0);
 			if(onMove.not){
 				sequencer.prepareRecording(activeChannel);
 			}
 		}{
+			// will this confict with the normal playback?
+			sequencer.stop(activeChannel);
 			this.updateSequencerMenu;
 		};
 	}
@@ -414,6 +418,12 @@ WFSInterface : WFSObject {
 	setChannelPlay { |val|
 		var play, seq;
 
+		// disallow playback if there is a recording happening already
+		if(sequencer.isRecording(activeChannel)){
+			channelWidgets['channelPlayButton'].value = 0;
+			^nil;
+		};
+		
 		// if there are no sequences in the current channel, then
 		// break out of the function
 		if(channelWidgets['channelSequenceMenu'].items.isNil
@@ -430,6 +440,7 @@ WFSInterface : WFSObject {
 		if(play){
 			sequencer.playSequence(activeChannel, seq);
 		}{
+			postln("stopping the sequencer from the interface.");
 			sequencer.stop(activeChannel);
 		};
 	}
@@ -698,7 +709,9 @@ WFSInterface : WFSObject {
 		globalWidgets = globalWidgets.add(
 			'locationMarkerArea' -> WFSMarkerArea(controlViewWindow, Rect(0, 0, 475, 475))
 			    .canAddMarker_(false)
-			    .mouseDownAction_({ |obj| parent.loadActiveChannel(obj.currentIndex); })
+			    .mouseDownAction_({ |obj|
+					parent.loadActiveChannel(obj.currentIndex);
+				})
 			    .mouseMoveAction_({ |obj|
 					this.setSoundLocation(obj.value);
 					if(this.getParam('channelRecordMonitorButton').toBool){

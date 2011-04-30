@@ -46,7 +46,6 @@ WFSSequencer : WFSObject {
 		flags = Array();
 		clock = TempoClock(1);
 
-		postln(this.class.asString ++ " initialized");
 	}
 
 	addChannel {
@@ -82,6 +81,7 @@ WFSSequencer : WFSObject {
 			add a new sequence to initiate a new recording
 		*/
 		flags[channel]['record'] = true;
+		postf("sequencer recording flag is %\n", flags[channel]['record']);
 		sequences[channel] = sequences[channel].add([clock.beats, Array()]);
 	}
 
@@ -132,7 +132,7 @@ WFSSequencer : WFSObject {
 	}
 
 	stop { |channel|
-		flags[channel] = Dictionary['play' -> false, 'record' -> false, 'stop' -> true, ]
+		flags[channel] = Dictionary['play' -> false, 'record' -> false, 'stop' -> true, ];
 	}
 
 	loadPreset { |sequence|

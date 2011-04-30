@@ -11,7 +11,7 @@ s.sendMsg('n_trace', 1001);
 WFSEngine.loadSynthDef
 
 ~main = WFSMixer("edirol");
-//~main = WFSMixer();
+~main = WFSMixer();
 
 // a section to test the callbacks
 
