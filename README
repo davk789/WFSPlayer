@@ -60,7 +60,5 @@ add vertical placement of audio signals
 
 BUGS:
 Cocoa GUI not supported
-mousedown on recording - the pause results in the marker waiting at the next
-    value
 noticeable delay artfacts when moving sound sources
 volume attenuation for the panning feature needs to be fine tuned

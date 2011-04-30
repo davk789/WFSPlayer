@@ -111,7 +111,7 @@ WFSSequencer : WFSObject {
 			{(index == sequence.lastIndex) || flags[chan]['stop']}{
 				wait = nil;
 			}{
-				wait = sequence[index][0] - sequence[index - 1][0];
+				wait = sequence[index + 1][0] - sequence[index][0];
 			};
 
 			flags[chan]['stop'] = false;
