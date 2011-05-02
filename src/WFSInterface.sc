@@ -596,6 +596,7 @@ WFSInterface : WFSObject {
 
 		globalWidgets = globalWidgets.add(
 			'presetListMenu' -> PopUpMenu(initRow, Rect(0, 0, 0, 20))
+			    .background_(Color.white.alpha_(0.6))
 			    .items_(prefManager.getPresetList);
 		);
 				
@@ -633,9 +634,8 @@ WFSInterface : WFSObject {
 			.stringColor_(Color.white);
 
 		globalWidgets = globalWidgets.add(
-			'airTempBox' -> WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
+			'airTempBox' -> NumberBox(initRow, Rect(0, 0, 0, 20))
 			    .value_(75)
-			    .background_(scrollingNBColor)
 			    .action_({ |obj| this.setAirTemp(obj.value); });
 		);
 
@@ -728,6 +728,7 @@ WFSInterface : WFSObject {
 		// grr i wish there was a way to auto generate these controls
 		channelWidgets = channelWidgets.add(
 			'channelDisplay' -> PopUpMenu(channelRow, Rect(0, 0, 0, 20))
+			    .background_(Color.white.alpha_(0.6))
 			    .action_({ |obj| parent.loadActiveChannel(obj.value); });
 		);
 
@@ -805,6 +806,7 @@ WFSInterface : WFSObject {
 		// ** this will hold the list of sequences
 		channelWidgets = channelWidgets.add(
 			'channelSequenceMenu' -> PopUpMenu(transportRow, Rect(0, 0, 0, 20))
+			    .background_(Color.white.alpha_(0.6))
 			    .action_({ |obj| this.setActiveSequence(obj.value); });
 		);
 		

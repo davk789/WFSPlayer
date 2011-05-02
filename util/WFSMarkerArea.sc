@@ -1,39 +1,42 @@
-WFSMarkerArea : JSCUserView {
+WFSMarkerArea {
+	/* wrap a view redirected View object, rather than inherit, for cross-platform
+	   compatibility. */
+	var pr_this; // the wrapped object
 	var coords, <currentIndex=0, indexCounter=0;
-	// backgroundColor is renaming this.background
 	var <markerColor, <selectionColor, <>markerSize=5;
 	var <>maxNumPoints=128; // mouse down may lag with too many points
 	var canMove=false;
 	var <>editable=true, <>canAddMarker=true; // watch canAddMarker for bugs
 
 	*new { |view, dim|
-		^super.new(view, dim).init_wfsmarkerarea;
+		^super.new.init_wfsmarkerarea(view, dim);
 	}
 
 	*test {
 		var win;
 		win = Window().front;
-		^super.new(win, win.view.bounds).init_wfsmarkerarea;
+		^super.new.init_wfsmarkerarea(win, win.view.bounds);
 	}
 
-	init_wfsmarkerarea {
+	init_wfsmarkerarea { |par,bnd|
+		pr_this = UserView(par,bnd);
 		// when removing elements, the value at the index is set to nil,
 		// rather than removing the value from the array outright
 		// so be sure to check for nil
 		coords = Array();
 		markerColor = Color.yellow;
 		selectionColor = Color.green;
-		this.background = Color.black.alpha_(0.8);
+		pr_this.background = Color.black.alpha_(0.8);
 
-		this.mouseDownAction = {};
-		this.mouseUpAction = {};
-		this.mouseMoveAction = {};
+		pr_this.mouseDownAction = {};
+		pr_this.mouseUpAction = {};
+		pr_this.mouseMoveAction = {};
 
 		this.setDrawFunc;
 	}
 
 	setDrawFunc {
-		this.drawFunc = {
+		pr_this.drawFunc = {
 			Pen.use{
 				coords.do{ |coord, ind|
 					
@@ -53,29 +56,29 @@ WFSMarkerArea : JSCUserView {
 	}
 
 	mouseDownAction_ { |func|
-		super.mouseDownAction = { |obj,x,y,mod|
+		pr_this.mouseDownAction = { |obj,x,y,mod|
 			if(editable){
 				this.handleMouseDown(x @ y, mod);
 			};
-			func.value(obj,x,y,mod);
+			func.value(this,x,y,mod);
 		};
 	}
 
-	mouseUpAction_ { |func| // no need to subclass this yet
-		super.mouseUpAction = { |obj,x,y,mod|
+	mouseUpAction_ { |func|
+		pr_this.mouseUpAction = { |obj,x,y,mod|
 			if(editable){
 				this.handleMouseUp(x @ y, mod);
 			};
-			func.value(obj,x,y,mod);
+			func.value(this,x,y,mod);
 		};
 	}
 
 	mouseMoveAction_ { |func|
-		super.mouseMoveAction = { |obj,x,y,mod|
+		pr_this.mouseMoveAction = { |obj,x,y,mod|
 			if(editable){
 				this.handleMouseMove(x @ y, mod);
 			};
-			func.value(obj,x,y,mod);
+			func.value(this,x,y,mod);
 		};
 	}
 
@@ -100,7 +103,7 @@ WFSMarkerArea : JSCUserView {
 	
 			canMove = pointsNotFull;
 			
-			this.refresh;
+			pr_this.refresh;
 
 		}{
 			canMove = false;
@@ -118,7 +121,7 @@ WFSMarkerArea : JSCUserView {
 	handleMouseMove { |coord, mod|
 		var coordPoint;
 		// we can not drag the marker out of the visible area!
-		coordPoint = coord.x.max(0).min(this.bounds.width) @ coord.y.max(0).min(this.bounds.height);
+		coordPoint = coord.x.max(0).min(pr_this.bounds.width) @ coord.y.max(0).min(pr_this.bounds.height);
 		
 		if((mod != 131072) && canMove){
 			this.moveMarker(coordPoint);
@@ -127,18 +130,18 @@ WFSMarkerArea : JSCUserView {
 
 	removeMarker { |markerIndex|
 		coords[markerIndex] = nil;
-		this.refresh;
+		pr_this.refresh;
 	}
 
 	addMarker { |coord|
 		coords = coords.add(coord);
 		currentIndex = coords.lastIndex;
-		this.refresh;
+		pr_this.refresh;
 	}
 
 	moveMarker { |coord|
 		coords[currentIndex] = coord;
-		this.refresh;
+		pr_this.refresh;
 	}
 	
 	countPoints {
@@ -168,48 +171,48 @@ WFSMarkerArea : JSCUserView {
 
 	coords_ { |newCoords|
 		coords = newCoords;
-		this.refresh;
+		pr_this.refresh;
 	}
 	
 	markerColor_ { |color|
 		markerColor = color;
-		this.refresh;
+		pr_this.refresh;
 	}
 	
 	selectionColor_ { |color|
 		selectionColor = color;
-		this.refresh;
+		pr_this.refresh;
 	}
 
 	setValueForIndex { |ind, val|
 		var scaledVal;
 		// set a point scale 0..1 for an index
-		scaledVal = val * (this.bounds.width @ this.bounds.height);
+		scaledVal = val * (pr_this.bounds.width @ pr_this.bounds.height);
 
 		coords[ind] = scaledVal;
-		this.refresh;
+		pr_this.refresh;
 	}
 
 	getValueForIndex { |ind|
-		^coords[ind] / (this.bounds.width @ this.bounds.height);
+		^coords[ind] / (pr_this.bounds.width @ pr_this.bounds.height);
 	}
 
 	value {
 		^coords.collect{ |obj|
-			obj / (this.bounds.width @ this.bounds.height)
+			obj / (pr_this.bounds.width @ pr_this.bounds.height)
 		};
 	}
 
 	value_ { |val|
 		coords = val.collect{ |obj|
- 			obj * (this.bounds.width @ this.bounds.height);
+ 			obj * (pr_this.bounds.width @ pr_this.bounds.height);
 		};
-		this.refresh;
+		pr_this.refresh;
 	}
 
 	currentIndex_ { |ind|
 		currentIndex = ind;
-		this.refresh;
+		pr_this.refresh;
 	}
 
 	currentValue {
@@ -218,5 +221,13 @@ WFSMarkerArea : JSCUserView {
 
 	currentValue_ { |val|
 		this.setValueForIndex(currentIndex, val);
+	}
+	
+	enabled_ { |choice|
+		pr_this.enabled = choice;
+	}
+	
+	enabled {
+		pr_this.enabled;
 	}
 }
