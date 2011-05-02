@@ -59,6 +59,5 @@ add drawing/algorithmic sequencing features
 add vertical placement of audio signals
 
 BUGS:
-Cocoa GUI not supported
 noticeable delay artfacts when moving sound sources
 volume attenuation for the panning feature needs to be fine tuned
