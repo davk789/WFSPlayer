@@ -13,12 +13,14 @@ WFSInterface : WFSObject {
 	// parameter defaults and storage
 	var defaultChannelWidgetValues;
 	var <channelWidgetValues, <globalWidgetValues;
+	var windowTitle; // superfluous?
 
-	*new {
-		^super.new.init_wfsinterface;
+	*new { |name|
+		^super.new.init_wfsinterface(name);
 	}
 	
-	init_wfsinterface {
+	init_wfsinterface { |name|
+		windowTitle = name ? "WFSMixer";
 		globalWidgets = Dictionary();
 		channelWidgets = Dictionary();
 		globalWidgetValues = Dictionary[
@@ -580,7 +582,7 @@ WFSInterface : WFSObject {
 		var presetList;
 		var scrollingNBColor = Color.new255(255, 255, 200);
 
-		controlViewWindow = Window("WFSMixer", Rect(500.rand, 500.rand, 1000, 485)).front;
+		controlViewWindow = Window(windowTitle, Rect(500.rand, 500.rand, 1000, 485)).front;
 		controlViewWindow.view.decorator = FlowLayout(controlViewWindow.view.bounds);
 		
 		initRow = VLayoutView(controlViewWindow, Rect(0, 0, 120, 475))

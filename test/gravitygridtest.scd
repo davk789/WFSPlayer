@@ -10,8 +10,9 @@ s.sendMsg('n_trace', 1001);
 
 WFSEngine.loadSynthDef
 
-~main = WFSMixer("edirol");
-~main = WFSMixer();
+~main = WFSMixer(conditions:"edirol");
+~main = WFSMixer("Project 1");
+~main2 = WFSMixer("Project 2");
 
 // a section to test the callbacks
 
@@ -24,6 +25,7 @@ WFSEngine.loadSynthDef
 
 ~ggOutBus = ~main.addChannel;
 ~pOutBus = ~main.addChannel;
+~pOutBus = ~main2.addChannel;
 
 ~ggOutBus = ~main.getInBus(0);
 ~pOutBus = ~main.getInBus(1);

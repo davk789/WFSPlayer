@@ -11,38 +11,44 @@ WFSMixer {
 	var <>sequencer;
 	var <>preferences;
 	
-	*new { |test|
-		^super.new.init_wfsmixer(test);
+	*new { |name,conditions|
+		^super.new.init_wfsmixer(name,conditions);
 	}
 	
-	init_wfsmixer { |conditions|
+	init_wfsmixer { |name,conditions|
 		s = Server.default;
 		
 		preferences = WFSPreferences();
 		sequencer = WFSSequencer();
 		engine = WFSEngine();
-		interface = WFSInterface();
+		interface = WFSInterface(name);
 
 		// break early for testing
 		if(conditions == "test"){
 			this.initializeDeferred;
 			^nil;
 		};
-
-		if(s.serverRunning){
-			s.quit;
-		};
-
+		
 		// for testing -- when playing itunes through the headphones, specify
 		// the edirol
 		if(conditions == "edirol"){
+			if(s.serverRunning){
+				s.quit;
+			};
+
 			s.options.device = ServerOptions.devices[0];
+
+			s.waitForBoot{ this.initializeDeferred; };
+			postln("ready to play out of the edirol");
+
+			^nil;
 		};
-		
-		// the delay for the channels exceeds the default limit for server memory 
-		// allocation. 
-		s.options.memSize = 2 ** 18; // ~256 MB (8MB is the default)
-		s.waitForBoot{ this.initializeDeferred; };
+
+		if(s.serverRunning.not){
+			s.waitForBoot{ this.initializeDeferred; };
+		}{
+			this.initializeDeferred;
+		};		
 				
 		// all done, alert the post window
 		postln(this.class.asString ++ " initialized");

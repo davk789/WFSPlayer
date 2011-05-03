@@ -51,8 +51,7 @@ util/WFSScrollingNumberBox.sc
 *********** notes ***********
 
 TODO:
-handle multiple instances by using static variables
-programmatically load presets
+programmatically load presets <-- ** is this necessary?
 ... wish list
 add a global "loop" option to the sequencer
 add drawing/algorithmic sequencing features

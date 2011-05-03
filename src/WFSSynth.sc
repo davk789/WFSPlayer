@@ -10,9 +10,9 @@ WFSEngine : WFSObject {
 	var channelVolumes; // should this be kept in a better spot?
 	var roomDepth=10, roomWidth=10, masterVolume=1, airTemperature=23; // these should be static variables
 	var synthParams, defaultParams, s;
-	var mixerNode, inputChannelNodes, synthNodes;
+	var mixerNode, inputChannelNodes, synthNodes, buffers;
 	var <numChannels=16; // number of speakers, not num in put channels
-	var inBusCounter=20; // ... static variable?
+	classvar <>inBusCounter=20;
 	//	var speedOfSound=340.29; // m/s
 	
 	*new {
@@ -21,6 +21,7 @@ WFSEngine : WFSObject {
 	}
 	
 	init_wfsengine {
+		buffers = Array(); // needs to match the synthNodes
 		synthNodes = Array();
 		inputChannelNodes = Array();
 		channelVolumes = Array();
@@ -69,6 +70,7 @@ WFSEngine : WFSObject {
 		var newChannelNode = s.nextNodeID;
 		var newNodes = Array();
 		var newParams = Array();
+		var newBuffers = Array();
 		var channelIndex = index ? interface.channelWidgetValues.lastIndex;
 
 		// initialize all synth params in this function
@@ -83,11 +85,15 @@ WFSEngine : WFSObject {
 		numChannels.do{ |ind|
 			newNodes = newNodes.add(s.nextNodeID);
 			newParams = newParams.add(defaultParams.copy);
+			newBuffers = newBuffers.add(Buffer.alloc(Server.default, 44100 * 1.0, 1));
 			newParams.last['outBus'] = ind;
-			newParams.last['inBus'] = inBusCounter;
-
+			newParams.last['inBus'] = this.class.inBusCounter;
+			
 			s.listSendMsg(
-				['s_new', 'WFSMixerChannel', newNodes.last, 0, newChannelNode]
+				[
+					's_new', 'WFSMixerChannel', newNodes.last, 0, newChannelNode,
+					'bufnum', newBuffers.last.bufnum
+				]
 				++
 				newParams.last.getPairs
 			);
@@ -104,12 +110,14 @@ WFSEngine : WFSObject {
 		s.sendMsg('n_set', newChannelNode, 'channelVol', channelVolumes.last);
 
 		// increment the bus number for the next input channel		
-		inBusCounter = inBusCounter + 1;
+		this.class.inBusCounter = this.class.inBusCounter + 1;
 		
 		// store the nodes here for later setting methods
 		inputChannelNodes = inputChannelNodes.add(newChannelNode);
 		synthNodes = synthNodes.add(newNodes);
 		synthParams = synthParams.add(newParams);
+		// storing the buffers too. these are not directly accessed after creation yet
+		buffers = buffers.add(newBuffers);
 
 		// get room width and depth
 		// accessing the gui in case the value is set on the widget but the action is not tiggered
@@ -138,13 +146,17 @@ WFSEngine : WFSObject {
 	removeChannel { |chan=0|
 		s.sendMsg('n_set', inputChannelNodes[chan], 'gate', 0);
 		s.sendMsg('n_free', inputChannelNodes[chan]);
+		buffers[chan].do{ |buf| buf.free; };
 
 		inputChannelNodes.removeAt(chan);
 		synthNodes.removeAt(chan);
 		synthParams.removeAt(chan);
+		buffers.removeAt(chan);
 
-		if(inputChannelNodes.size == 0){
-			inBusCounter = 20; // go back to the default value if removing the last channel
+		if(inputChannelNodes.size > 128){
+			// I should use a ContiguousBlockAllocator here but for now, 
+			// simply wrapping the inBuses around will work okay.
+			this.class.inBusCounter = 20;
 		}
 	}
 
@@ -156,8 +168,9 @@ WFSEngine : WFSObject {
 		while{synthNodes.size > 0}{
 			this.removeChannel;
 		};
-
-		inBusCounter = 20; // reset the in bus counter
+		
+		// add a static ContiguousBlockAllocator here, to avoid problems
+		//this.class.inBusCounter = 20;
 		
 		// add the channels
 		interface.channelWidgetValues.size.do{ |ind|
@@ -280,7 +293,8 @@ WFSEngine : WFSObject {
 		inputChannelNodes = Array();
 		synthNodes = Array();
 		synthParams = Array();
-		inBusCounter = 20; // back to default value
+		// add a ContiguousBlockAllocator and use it here!
+		//inBusCounter = 20; // back to default value
 		
 		this.initDeferred;
 		numInputs.do{ |ind|
@@ -295,15 +309,16 @@ WFSEngine : WFSObject {
 		synth per input channel, but leave as is for now. */
 		SynthDef.new(
 			"WFSMixerChannel",
-			{ |inBus=20, outBus=0, delayTime=0.01, i_maxDelay=1, lev=1, channelVol=1, masterVol=1, gate=0|
+			{ |inBus=20, outBus=0, delayTime=0.01, lev=1, channelVol=1, masterVol=1,
+				gate=0, bufnum=0|
 				var aSig, aIn, aEnv;
 				
 				aEnv = EnvGen.ar(Env.asr(0.5, 1, 0.5, 'exponential'), gate, doneAction:2);
 				// gain = per-channel attenuation, lev = per-input level
 				aIn = In.ar(inBus);
-				aSig = DelayC.ar(
+				aSig = BufDelayC.ar(
+					bufnum,
 					aIn,
-					i_maxDelay,
 					// this seems to work okay for smaller spaces/sounds that don't 
 					// move too fast
 					Lag.kr(delayTime, 0.1),//delayTime,
