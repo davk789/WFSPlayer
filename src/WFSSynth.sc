@@ -42,6 +42,7 @@ WFSEngine : WFSObject {
 			'lev'       -> 1,
 			'outBus'    -> 0,
 			'inBus'     -> 20,
+			'lag'       -> 0.1,
 		];
 	}
 	
@@ -254,6 +255,14 @@ WFSEngine : WFSObject {
 		
 		s.sendMsg('n_set', inputChannelNodes[chan], 'channelVol', amp);
 	}
+
+	setChannelDelayLag { |chan, lag|
+		synthParams[chan].do{ |obj|
+			obj['lag'] = lag;
+		};
+
+		s.sendMsg('n_set', inputChannelNodes[chan], 'lag', lag);
+	}
 	
 	// instance setter methods
 
@@ -316,7 +325,7 @@ WFSEngine : WFSObject {
 		SynthDef.new(
 			"WFSMixerChannel",
 			{ |inBus=20, outBus=0, delayTime=0.01, lev=1, channelVol=1, masterVol=1,
-				gate=0, bufnum=0|
+				gate=0, bufnum=0, lag=0.1|
 				var aSig, aIn, aEnv;
 				
 				aEnv = EnvGen.ar(Env.asr(0.5, 1, 0.5, 'exponential'), gate, doneAction:2);
@@ -327,7 +336,7 @@ WFSEngine : WFSObject {
 					aIn,
 					// this seems to work okay for smaller spaces/sounds that don't 
 					// move too fast
-					Lag.kr(delayTime, 0.1),//delayTime,
+					Lag.kr(delayTime, lag),//delayTime,
 					lev * channelVol * masterVol
 				);
 

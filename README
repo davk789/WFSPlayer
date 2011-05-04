@@ -51,7 +51,6 @@ util/WFSScrollingNumberBox.sc
 *********** notes ***********
 
 TODO:
-add delay lag as a per-channel setting
 programmatically load presets <-- ** is this necessary?
 ... wish list
 add a global "loop" option to the sequencer
@@ -59,4 +58,5 @@ add drawing/algorithmic sequencing features
 add vertical placement of audio signals
 
 BUGS:
-noticeable delay artfacts when moving sound sources
+noticeable delay artfacts when moving sound sources <-- ** will the lag on the delay 
+    correct this problem?

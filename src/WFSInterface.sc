@@ -39,6 +39,7 @@ WFSInterface : WFSObject {
 			'channelVolumeBox'           -> -6,
 			'channelXPositionBox'        -> 0.1,
 			'channelYPositionBox'        -> 0.1,
+			'channelDelayLagBox'         ->0.1,
 			'channelInvertDelayButton'   -> 0,
 			// channel sequencer params
 			'channelRecordButton'        -> 0, // this and the recordMode are converted
@@ -371,6 +372,11 @@ WFSInterface : WFSObject {
 		this.sendSequencerData;
 	}
 
+	setChannelDelayLag { |lag|
+		this.setParam('channelDelayLagBox', lag);
+		engine.setChannelDelayLag(activeChannel, this.getParam('channelDelayLagBox'));
+	}
+	
 	setChannelLabel { |label|
 		var menuItems;
 		/**
@@ -797,6 +803,17 @@ WFSInterface : WFSObject {
 			    .value_(0.1)
 			    .action_({ |obj| this.setChannelYPosition(obj.value) });
 		);
+
+		StaticText(channelRow, Rect(0, 0, 0, 20))
+		    .string_("delay lag")
+		    .stringColor_(Color.white);
+
+		channelWidgets = channelWidgets.add(
+			'channelDelayLagBox' -> NumberBox(channelRow, Rect(0, 0, 0, 20))
+			    .value_(0.1)
+			    .action_({ |obj| this.setChannelDelayLag(obj.value) });
+		);
+		
 
 		channelWidgets = channelWidgets.add(
 			'channelInvertDelayButton' -> Button(channelRow, Rect(0, 0, 0, 20))

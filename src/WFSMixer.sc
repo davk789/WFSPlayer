@@ -37,11 +37,6 @@ WFSMixer {
 			};
 
 			s.options.device = ServerOptions.devices[0];
-
-			s.waitForBoot{ this.initializeDeferred; };
-			postln("ready to play out of the edirol");
-
-			^nil;
 		};
 
 		if(s.serverRunning.not){
