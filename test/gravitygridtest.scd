@@ -10,6 +10,7 @@ s.sendMsg('n_trace', 1001);
 
 WFSEngine.loadSynthDef
 
+~main = WFSMixer(conditions:"test");
 ~main = WFSMixer(conditions:"edirol");
 ~main = WFSMixer("Project 1");
 ~main2 = WFSMixer("Project 2");
@@ -19,7 +20,6 @@ WFSEngine.loadSynthDef
 ~main.startAction = { |seq,chan| ["start",seq,chan].postln; };
 ~main.action = { |seq,chan,val| ["move",seq,chan,val].postln; };
 ~main.stopAction = { |seq,chan| ["stop",seq,chan].postln; };
-
 
 // this is all that I really need to check the sound
 

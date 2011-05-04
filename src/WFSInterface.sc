@@ -24,12 +24,14 @@ WFSInterface : WFSObject {
 		globalWidgets = Dictionary();
 		channelWidgets = Dictionary();
 		globalWidgetValues = Dictionary[
-			'numSpeakersBox'  -> 16,
-			'airTempBox'      -> 75,
-			'roomWidthBox'    -> 25,
-			'roomDepthBox'    -> 35,
-			'masterVolumeBox' -> -6,
+			'numSpeakersBox'   -> 16,
+			'airTempBox'       -> 75,
+			'roomWidthBox'     -> 25,
+			'roomDepthBox'     -> 35,
+			'masterVolumeBox'  -> -6,
+			'panningAmountBox' -> 0.5,
 		];
+
 		defaultChannelWidgetValues =  Dictionary[
 		    'channelLabel'               -> ("Channel " ++ channelCounter),
 			//'audioSourceMenu'          -> 0, // access to the mixer is through code for now
@@ -571,6 +573,11 @@ WFSInterface : WFSObject {
 		engine.roomDepth = globalWidgetValues['roomDepthBox'];
 	}
 
+	setPanningAmount { |amt|
+		globalWidgetValues['panningAmountBox'] = amt;
+		engine.panningAmount = globalWidgetValues['panningAmountBox'];
+	}
+	
 	setMasterVolume { |vol|
 		globalWidgetValues['masterVolumeBox'] = vol;
 		engine.masterVolume = globalWidgetValues['masterVolumeBox'];
@@ -659,6 +666,17 @@ WFSInterface : WFSObject {
 			'roomDepthBox' -> NumberBox(initRow, Rect(0, 0, 0, 20))
 			    .value_(100)
 			    .action_({ |obj| this.setRoomDepth(obj.value); });
+		);
+
+
+		StaticText(initRow, Rect(0, 0, 0, 20))
+			.string_("panning amount")
+			.stringColor_(Color.white);
+
+		globalWidgets = globalWidgets.add(
+			'panningAmountBox' -> NumberBox(initRow, Rect(0, 0, 0, 20))
+			    .value_(0.5)
+			    .action_({ |obj| this.setPanningAmount(obj.value); });
 		);
 		
 		// global control row

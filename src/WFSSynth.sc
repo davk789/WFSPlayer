@@ -8,7 +8,8 @@ WFSEngine : WFSObject {
 	// store as internal units: meters and absolute amplitude
 	var maxDelay=0.5; // calculation of longest possible delay
 	var channelVolumes; // should this be kept in a better spot?
-	var roomDepth=10, roomWidth=10, masterVolume=1, airTemperature=23; // these should be static variables
+	var roomDepth=10, roomWidth=10, masterVolume=1, panningAmount=0.5,
+	    airTemperature=23; // these should be static variables
 	var synthParams, defaultParams, s;
 	var mixerNode, inputChannelNodes, synthNodes, buffers;
 	var <numChannels=16; // number of speakers, not num in put channels
@@ -214,7 +215,7 @@ WFSEngine : WFSObject {
 				for volume -- attenuate a fixed dB/m amount, fiddle with the params -- 2dB seems
 				to be the value I found online so far
 			*/
-			level = (distance * 0.5/*2*/).abs.neg.dbamp;
+			level = (distance * panningAmount).abs.neg.dbamp;
 			synthParams[chan][ind]['lev'] = level;
 			
 			s.sendMsg('n_set', synthNodes[chan][ind], 'delayTime', delay, 'lev', level);
@@ -274,6 +275,11 @@ WFSEngine : WFSObject {
 	masterVolume_ { |val|
 		masterVolume = val.dbamp;
 		s.sendMsg('n_set', mixerNode, 'masterVol', masterVolume);
+	}
+
+	panningAmount_ { |amt|
+		panningAmount = amt;
+		this.updateAllLocations;
 	}
 
 	numChannels_ { |num|
