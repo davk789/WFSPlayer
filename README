@@ -51,7 +51,14 @@ programmatically load presets <-- ** is this necessary?
 add a global "loop" option to the sequencer
 add drawing/algorithmic sequencing features
 add vertical placement of audio signals
+*** from Bryan
+add draw paths to the markers that show where the markers go when played (no more info needed)
+add more control over the sequences (clear, rename, delete sequences, etc.)
+
 
 BUGS:
-noticeable delay artfacts when moving sound sources <-- ** will the lag on the delay 
-    correct this problem?
+-noticeable delay artfacts when moving sound sources < adding a lag corrects this problem
+... reported from bryan
+WFSMixer:playAction is only called when launching the sequence -- on a loop, play is not retriggered
+channel volume control appears not to work
+"having trouble setting adding a channel and playing back a sound at the same time."
