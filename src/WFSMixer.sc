@@ -26,7 +26,7 @@ WFSMixer {
 		// break early for testing
 		if(conditions == "test"){
 			this.initializeDeferred;
-			^nil;
+			^this;
 		};
 		
 		// for testing -- when playing itunes through the headphones, specify

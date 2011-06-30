@@ -120,7 +120,11 @@ WFSPreferences : WFSObject {
 		};
 		
 		// write the file
-		outFileName = filename ?? { Date.localtime.stamp };
+		if(filename.isNil || (filename == "")){
+			outFileName = Date.localtime.stamp;
+		}{
+			outFileName = filename;
+		};
 		outFile = File(presetRoot ++ outFileName ++ ".xml", "w+");
 		doc.write(outFile);
 		outFile.close;

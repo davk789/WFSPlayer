@@ -24,12 +24,13 @@ WFSInterface : WFSObject {
 		globalWidgets = Dictionary();
 		channelWidgets = Dictionary();
 		globalWidgetValues = Dictionary[
-			'numSpeakersBox'   -> 16,
-			'airTempBox'       -> 75,
-			'roomWidthBox'     -> 25,
-			'roomDepthBox'     -> 35,
-			'masterVolumeBox'  -> -6,
-			'panningAmountBox' -> 0.5,
+			'numSpeakersBox'    -> 16,
+			'airTempBox'        -> 75,
+			'roomWidthBox'      -> 25,
+			'roomDepthBox'      -> 35,
+			'masterVolumeBox'   -> -6,
+			'panningAmountBox'  -> 0.5,
+			'invertDelayButton' -> 0, 
 		];
 
 		defaultChannelWidgetValues =  Dictionary[
@@ -397,6 +398,7 @@ WFSInterface : WFSObject {
 	setChannelInvertDelay { |choice|
 		// engine accesses this value, no need to push to engine
 		this.setParam('channelInvertDelayButton', choice);
+		engine.updateAllLocations; // call engine refresh to update the params
 	}
 	
 	setChannelRecord { |val|
@@ -487,6 +489,15 @@ WFSInterface : WFSObject {
 	
 	// global functions
 	
+	setGlobalInvertDelay { |val|
+		channelWidgetValues.do{ |obj,ind|
+			obj['channelInvertDelayButton'] = val;
+		};
+		engine.updateAllLocations;
+
+		channelWidgets['channelInvertDelayButton'] = val;
+	}
+
 	setGlobalPlay {
 		
 		channelWidgetValues.do{ |obj,ind|
@@ -512,7 +523,8 @@ WFSInterface : WFSObject {
 	}
 
 	savePreset {
-		prefManager.save;
+		prefManager.save(globalWidgets['presetNameField'].string);
+		globalWidgets['presetNameField'].string = "";
 		globalWidgets['presetListMenu'].items = prefManager.getPresetList;
 	}
 
@@ -610,15 +622,20 @@ WFSInterface : WFSObject {
 		);
 
 		globalWidgets = globalWidgets.add(
+			'presetNameField' -> TextField(initRow, Rect(0, 0, 0, 20))
+			    .action_({ this.savePreset; });
+		);
+
+		globalWidgets = globalWidgets.add(
 			'presetListMenu' -> PopUpMenu(initRow, Rect(0, 0, 0, 20))
 			    .background_(Color.white.alpha_(0.6))
-			    .items_(prefManager.getPresetList);
+			    .items_(prefManager.getPresetList)
+			    .action_({ |obj| parent.loadPreset(obj.item); });
 		);
 				
 		globalWidgets = globalWidgets.add(
 			'presetLoadButton' -> Button(initRow, Rect(0, 0, 0, 20))
-			    .states_([["load", Color.white, Color.new255(150, 150, 255, 200)]])
-			    .action_({ parent.loadPreset(globalWidgets['presetListMenu'].item); });
+			    .states_([["reload", Color.white, Color.new255(150, 150, 255, 200)]]);
 		);		
 
 		StaticText(initRow, Rect(0, 0, 0, 20))
@@ -691,7 +708,11 @@ WFSInterface : WFSObject {
 			.background_(Color.black.alpha_(0.8));
 		
 		StaticText(globalRow, Rect(0, 0, 0, 20))
-			.string_("global transport")
+			.string_("GLOBAL")
+			.stringColor_(Color.white);
+		
+		StaticText(globalRow, Rect(0, 0, 0, 20))
+			.string_("transport")
 			.stringColor_(Color.white);
 
 		/*
@@ -713,6 +734,15 @@ WFSInterface : WFSObject {
 		        .font_(Font("Arial Black", 12))
 			    .action_({ |obj| this.setGlobalStop; });
 		);
+
+		globalWidgets = globalWidgets.add(
+			'invertDelayButton' -> Button(globalRow, Rect(0, 0, 0, 20))
+			    .states_([
+					["invert delay", Color.white, Color.black],
+					["invert delay", Color.black, Color.yellow]
+				])
+			    .action_({ |obj| this.setGlobalInvertDelay(obj.value); })
+		);
 				
 		StaticText(globalRow, Rect(0, 0, 0, 20))
 			.string_("master volume (dB)")
@@ -730,6 +760,7 @@ WFSInterface : WFSObject {
 			    .states_([["add channel", Color.black, Color.grey]])
 			    .action_({ parent.addChannel; })
 		);
+
 		// marker area
 
 		globalWidgets = globalWidgets.add(

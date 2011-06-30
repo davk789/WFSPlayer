@@ -1,5 +1,6 @@
 
 
+
 WFSPlayer -- an audio mixer that implements Wavefront Synthesis to spatialize sound along
 a 2 dimensional plane. This will be able to mix external signals, along with custom 
 SynthDefs that can be loaded with this set of SuperCollider classes.
@@ -54,6 +55,7 @@ add vertical placement of audio signals
 *** from Bryan
 add draw paths to the markers that show where the markers go when played (no more info needed)
 add more control over the sequences (clear, rename, delete sequences, etc.)
+add more control over the presets (rename, delete, etc.)
 
 
 BUGS:
@@ -61,4 +63,3 @@ BUGS:
 ... reported from bryan
 WFSMixer:playAction is only called when launching the sequence -- on a loop, play is not retriggered
 channel volume control appears not to work
-"having trouble setting adding a channel and playing back a sound at the same time."
