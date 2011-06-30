@@ -121,13 +121,21 @@ WFSPreferences : WFSObject {
 		
 		// write the file
 		if(filename.isNil || (filename == "")){
-			outFileName = Date.localtime.stamp;
+			outFileName = this.checkFileName(Date.localtime.stamp.asString);
 		}{
-			outFileName = filename;
+			outFileName = this.checkFileName(filename);
 		};
 		outFile = File(presetRoot ++ outFileName ++ ".xml", "w+");
 		doc.write(outFile);
 		outFile.close;
+	}
+
+	checkFileName { |name|
+		if(File.exists(presetRoot ++ name ++ ".xml")){
+			^name ++ "_" ++ Date.localtime.stamp.asString;
+		}{
+			^name;
+		};
 	}
 	
 	getPresetList {
