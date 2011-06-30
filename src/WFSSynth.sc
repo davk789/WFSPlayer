@@ -50,7 +50,7 @@ WFSEngine : WFSObject {
 		// create the group
 		mixerNode = s.nextNodeID;
 		// node ID, add action(1=add to tail), target node (the default node) 
-		s.sendMsg('g_new', mixerNode, 1, 1);
+		s.sendMsg('g_new', mixerNode, 1, 0);
 	}
 
 	getInBus { |chan|
