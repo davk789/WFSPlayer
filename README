@@ -50,6 +50,7 @@ TODO:
 add more control over the sequences (clear, rename, delete sequences, etc.)
 the displayed x y coordinates should reflect the dimensions of the room, rather than unit value
 improve display -- add grid, allow values outside of the "box"
+make the delay time selection handle negative numbers when the spatialization is inverted (and only then)
 
 ... wish list
 add a global "loop" option to the sequencer

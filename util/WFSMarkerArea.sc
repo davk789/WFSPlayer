@@ -176,8 +176,8 @@ WFSMarkerArea {
 
 	handleMouseMove { |coord, mod|
 		var coordPoint;
-		// we can not drag the marker out of the visible area!
-		coordPoint = coord.x.max(0).min(prThis.bounds.width) @ coord.y.max(0).min(prThis.bounds.height);
+		// now we can drag the markers outside of the visible area
+		coordPoint = coord.x @ coord.y;
 		
 		if((mod != 131072) && canMove){
 			this.moveMarker(coordPoint);

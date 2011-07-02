@@ -318,18 +318,8 @@ WFSInterface : WFSObject {
 			3 - update the MarkerArea to reflect the new values
 			4 - push the data to the engine
 		*/
-		case{ val < 0 }{
-			pos = 0;
-			channelWidgets['channelXPositionBox'].value = 0;
-		} // else if
-		{ val > 1 }{
-			pos = 1;
-			channelWidgets['channelXPositionBox'].value = 1;		
-		} // else
-		{
-			pos = val;
-		};
-		
+		pos = val;
+			
 		// remember -- .value returns a representation of the MerkerArea's value
 		// so, I need to get the value, alter and re-set the value
 		markerVals = globalWidgets['locationMarkerArea'].value;
@@ -350,17 +340,7 @@ WFSInterface : WFSObject {
 			X position version. I am leaving it like like this, with the redundant lines, in order
 			to preserve readability.
 		*/
-		case{ val < 0 }{
-			pos = 0;
-			channelWidgets['channelYPositionBox'].value = 0;
-		} // else if
-		{ val > 1 }{
-			pos = 1;
-			channelWidgets['channelYPositionBox'].value = 1;		
-		} // else
-		{
-			pos = val;
-		};
+		pos = val;
 		
 		markerVals = globalWidgets['locationMarkerArea'].value;
 		markerVals[activeChannel].y = pos;
@@ -639,7 +619,8 @@ WFSInterface : WFSObject {
 				
 		globalWidgets = globalWidgets.add(
 			'presetLoadButton' -> Button(initRow, Rect(0, 0, 0, 20))
-			    .states_([["reload", Color.white, Color.new255(150, 150, 255, 200)]]);
+			    .states_([["reload", Color.white, Color.new255(150, 150, 255, 200)]])
+			    .action_({ |obj| parent.loadPreset(globalWidgets['presetLoadButton'].item); });
 		);		
 
 		StaticText(initRow, Rect(0, 0, 0, 20))
