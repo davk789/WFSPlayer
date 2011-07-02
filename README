@@ -47,19 +47,24 @@ s.sendMsg('n_free', ~pNode);
 ********** issues ***********
 
 TODO:
-programmatically load presets <-- ** is this necessary?
+add more control over the sequences (clear, rename, delete sequences, etc.)
+the displayed x y coordinates should reflect the dimensions of the room, rather than unit value
+improve display -- add grid, allow values outside of the "box"
+
 ... wish list
 add a global "loop" option to the sequencer
 add drawing/algorithmic sequencing features
 add vertical placement of audio signals
 *** from Bryan
 add draw paths to the markers that show where the markers go when played (no more info needed)
-add more control over the sequences (clear, rename, delete sequences, etc.)
-add more control over the presets (rename, delete, etc.)
-
 
 BUGS:
--noticeable delay artfacts when moving sound sources < adding a lag corrects this problem
-... reported from bryan
-WFSMixer:playAction is only called when launching the sequence -- on a loop, play is not retriggered
-channel volume control appears not to work
+******* from bryan
+clear sequence doesn't work.. << general messiness here -- just generally take a look 
+also, panning amount doesn't save
+values are not initalized from the gui
+
+
+
+
+

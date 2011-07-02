@@ -1,8 +1,10 @@
 WFSMarkerArea {
 	/* wrap a view redirected View object, rather than inherit, for cross-platform
 	   compatibility. */
-	var pr_this; // the wrapped object
+	var prThis; // the wrapped object
+	var <dimensions; //  point representation of dimensions in feet
 	var coords, <currentIndex=0, indexCounter=0;
+	var <gridColor, <gridHighlightColor;
 	var <markerColor, <selectionColor, <>markerSize=5;
 	var <>maxNumPoints=128; // mouse down may lag with too many points
 	var canMove=false;
@@ -19,27 +21,58 @@ WFSMarkerArea {
 	}
 
 	init_wfsmarkerarea { |par,bnd|
-		pr_this = UserView(par,bnd);
+		prThis = UserView(par,bnd);
 		// when removing elements, the value at the index is set to nil,
 		// rather than removing the value from the array outright
 		// so be sure to check for nil
 		coords = Array();
 		markerColor = Color.yellow;
 		selectionColor = Color.green;
-		pr_this.background = Color.black.alpha_(0.8);
+		gridColor = Color.new255(55, 62, 64);
+		gridHighlightColor = Color.new255(80, 95, 99);
+		prThis.background = Color.black.alpha_(0.8);
+		dimensions = 16 @ 22;
 
-		pr_this.mouseDownAction = {};
-		pr_this.mouseUpAction = {};
-		pr_this.mouseMoveAction = {};
+		prThis.mouseDownAction = {};
+		prThis.mouseUpAction = {};
+		prThis.mouseMoveAction = {};
 
 		this.setDrawFunc;
 	}
 
 	setDrawFunc {
-		pr_this.drawFunc = {
+		prThis.drawFunc = {
 			Pen.use{
+				// draw grid
+				var offset;
+				Pen.color = gridHighlightColor;
+
+				offset = prThis.bounds.width / (dimensions.x * 2);
+				dimensions.x.do{ |ind|
+					var loc = ((ind / dimensions.x) * prThis.bounds.width) + offset;
+					Pen.line(
+						loc @ 0,
+						loc @ prThis.bounds.height
+					);
+				};
+				Pen.stroke;				
+				
+				dimensions.y.do{ |ind|
+					var loc = (ind / dimensions.y) * prThis.bounds.height;
+					if((ind % 3) == 0){
+						Pen.color = gridHighlightColor;
+					}{
+						Pen.color = gridColor;
+					};
+					Pen.line(
+						0 @ loc,
+						prThis.bounds.width @ loc
+					);
+					Pen.stroke;
+				};
+
+				// draw location points
 				coords.do{ |coord, ind|
-					
 					if(ind == currentIndex){ 
 						Pen.color = selectionColor;
 					}{
@@ -56,7 +89,7 @@ WFSMarkerArea {
 	}
 
 	mouseDownAction_ { |func|
-		pr_this.mouseDownAction = { |obj,x,y,mod|
+		prThis.mouseDownAction = { |obj,x,y,mod|
 			if(editable){
 				this.handleMouseDown(x @ y, mod);
 			};
@@ -65,7 +98,7 @@ WFSMarkerArea {
 	}
 
 	mouseUpAction_ { |func|
-		pr_this.mouseUpAction = { |obj,x,y,mod|
+		prThis.mouseUpAction = { |obj,x,y,mod|
 			if(editable){
 				this.handleMouseUp(x @ y, mod);
 			};
@@ -74,7 +107,7 @@ WFSMarkerArea {
 	}
 
 	mouseMoveAction_ { |func|
-		pr_this.mouseMoveAction = { |obj,x,y,mod|
+		prThis.mouseMoveAction = { |obj,x,y,mod|
 			if(editable){
 				this.handleMouseMove(x @ y, mod);
 			};
@@ -103,11 +136,34 @@ WFSMarkerArea {
 	
 			canMove = pointsNotFull;
 			
-			pr_this.refresh;
+			prThis.refresh;
 
 		}{
 			canMove = false;
 		};
+	}
+
+	dimensions_ { |dim|
+		dimensions = dim;
+		prThis.refresh;
+	}
+
+	width {
+		^dimensions.x;
+	}
+
+	width_ { |wid|
+		dimensions.x = wid;
+		prThis.refresh;
+	}
+
+	depth {
+		^dimensions.y;
+	}
+
+	depth_ { |dp|
+		dimensions.y = dp;
+		prThis.refresh;
 	}
 
 	handleMouseUp { |coord, mod|
@@ -121,7 +177,7 @@ WFSMarkerArea {
 	handleMouseMove { |coord, mod|
 		var coordPoint;
 		// we can not drag the marker out of the visible area!
-		coordPoint = coord.x.max(0).min(pr_this.bounds.width) @ coord.y.max(0).min(pr_this.bounds.height);
+		coordPoint = coord.x.max(0).min(prThis.bounds.width) @ coord.y.max(0).min(prThis.bounds.height);
 		
 		if((mod != 131072) && canMove){
 			this.moveMarker(coordPoint);
@@ -130,18 +186,18 @@ WFSMarkerArea {
 
 	removeMarker { |markerIndex|
 		coords[markerIndex] = nil;
-		pr_this.refresh;
+		prThis.refresh;
 	}
 
 	addMarker { |coord|
 		coords = coords.add(coord);
 		currentIndex = coords.lastIndex;
-		pr_this.refresh;
+		prThis.refresh;
 	}
 
 	moveMarker { |coord|
 		coords[currentIndex] = coord;
-		pr_this.refresh;
+		prThis.refresh;
 	}
 	
 	countPoints {
@@ -171,48 +227,48 @@ WFSMarkerArea {
 
 	coords_ { |newCoords|
 		coords = newCoords;
-		pr_this.refresh;
+		prThis.refresh;
 	}
 	
 	markerColor_ { |color|
 		markerColor = color;
-		pr_this.refresh;
+		prThis.refresh;
 	}
 	
 	selectionColor_ { |color|
 		selectionColor = color;
-		pr_this.refresh;
+		prThis.refresh;
 	}
 
 	setValueForIndex { |ind, val|
 		var scaledVal;
 		// set a point scale 0..1 for an index
-		scaledVal = val * (pr_this.bounds.width @ pr_this.bounds.height);
+		scaledVal = val * (prThis.bounds.width @ prThis.bounds.height);
 
 		coords[ind] = scaledVal;
-		pr_this.refresh;
+		prThis.refresh;
 	}
 
 	getValueForIndex { |ind|
-		^coords[ind] / (pr_this.bounds.width @ pr_this.bounds.height);
+		^coords[ind] / (prThis.bounds.width @ prThis.bounds.height);
 	}
 
 	value {
 		^coords.collect{ |obj|
-			obj / (pr_this.bounds.width @ pr_this.bounds.height)
+			obj / (prThis.bounds.width @ prThis.bounds.height)
 		};
 	}
 
 	value_ { |val|
 		coords = val.collect{ |obj|
- 			obj * (pr_this.bounds.width @ pr_this.bounds.height);
+ 			obj * (prThis.bounds.width @ prThis.bounds.height);
 		};
-		pr_this.refresh;
+		prThis.refresh;
 	}
 
 	currentIndex_ { |ind|
 		currentIndex = ind;
-		pr_this.refresh;
+		prThis.refresh;
 	}
 
 	currentValue {
@@ -224,10 +280,10 @@ WFSMarkerArea {
 	}
 	
 	enabled_ { |choice|
-		pr_this.enabled = choice;
+		prThis.enabled = choice;
 	}
 	
 	enabled {
-		pr_this.enabled;
+		prThis.enabled;
 	}
 }

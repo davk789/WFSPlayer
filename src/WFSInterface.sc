@@ -570,10 +570,13 @@ WFSInterface : WFSObject {
 	}
 
 	// global param stuff
-
+	// all of these kind of functions leave their respective widgets 
+	// unintialized. I need to find a routine way to ensure that my gui
+	// and data values are initialized
 	setNumSpeakers { |num|
 		globalWidgetValues['numSpeakersBox'] = num;
 		engine.numChannels = globalWidgetValues['numSpeakersBox'];
+		globalWidgets['locationMarkerArea'].width = num;
 	}
 
 	setAirTemp { |temp|
@@ -589,6 +592,7 @@ WFSInterface : WFSObject {
 	setRoomDepth { |depth|
 		globalWidgetValues['roomDepthBox'] = depth;
 		engine.roomDepth = globalWidgetValues['roomDepthBox'];
+		globalWidgets['locationMarkerArea'].depth = depth;
 	}
 
 	setPanningAmount { |amt|
