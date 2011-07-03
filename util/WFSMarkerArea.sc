@@ -42,6 +42,7 @@ WFSMarkerArea {
 
 	setDrawFunc {
 		prThis.drawFunc = {
+			coords.do(_.postln);
 			Pen.use{
 				// draw grid
 				var offset;
@@ -116,7 +117,7 @@ WFSMarkerArea {
 	}
 
 	handleMouseDown { |coord, mod|
-		// check the add conditions, more to come
+		// check the add conditions
 		var pointsNotFull, collisionPoint, numPoints;
 						
 		if(mod != 131072){
@@ -286,4 +287,13 @@ WFSMarkerArea {
 	enabled {
 		prThis.enabled;
 	}
+
+	resize {
+		^prThis.resize;
+	}
+
+	resize_ { |choice|
+		prThis.resize = choice;
+	}
+	
 }

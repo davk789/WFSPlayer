@@ -7,7 +7,7 @@ WFSInterface : WFSObject {
 	var activeChannel=0;    // index of the active source channel
 	var channelCounter=0;   // counter value for use with the channel display only
 	// GUI elements
-	var controlViewWindow, initRow, globalRow, channelRow, transportRow;
+	var controlViewWindow, initRow, globalRow, channelRow, transportRow, markerAreaContainer;
 	var <globalWidgets, <channelWidgets; // all gui elements are kept in a Dict for easy access
 
 	// parameter defaults and storage
@@ -26,7 +26,8 @@ WFSInterface : WFSObject {
 		globalWidgetValues = Dictionary[
 			'numSpeakersBox'    -> 16,
 			'airTempBox'        -> 75,
-			'roomWidthBox'      -> 25,
+			'roomWidthBox'      -> 20,
+			'arrayWidthBox'      -> 18,
 			'roomDepthBox'      -> 35,
 			'masterVolumeBox'   -> -6,
 			'panningAmountBox'  -> 0.5,
@@ -569,6 +570,11 @@ WFSInterface : WFSObject {
 		engine.roomWidth = globalWidgetValues['roomWidthBox'];
 	}
 
+	setArrayWidth { |width|
+		globalWidgetValues['arrayWidthBox'] = width;
+		engine.roomWidth = globalWidgetValues['arrayWidthBox'];		
+	}
+
 	setRoomDepth { |depth|
 		globalWidgetValues['roomDepthBox'] = depth;
 		engine.roomDepth = globalWidgetValues['roomDepthBox'];
@@ -591,11 +597,12 @@ WFSInterface : WFSObject {
 		var presetList;
 		var scrollingNBColor = Color.new255(255, 255, 200);
 
-		controlViewWindow = Window(windowTitle, Rect(500.rand, 500.rand, 1000, 485)).front;
+		controlViewWindow = Window(windowTitle, Rect(500.rand, 500.rand, 980, 485)).front;
 		controlViewWindow.view.decorator = FlowLayout(controlViewWindow.view.bounds);
 		
 		initRow = VLayoutView(controlViewWindow, Rect(0, 0, 120, 475))
-			.background_(Color.black.alpha_(0.8));
+			.background_(Color.black.alpha_(0.8))
+		    .resize_(4);
 		
 		// settings row
 		
@@ -667,6 +674,16 @@ WFSInterface : WFSObject {
 		);
 
 		StaticText(initRow, Rect(0, 0, 0, 20))
+			.string_("array width (feet)")
+			.stringColor_(Color.white);
+		
+		globalWidgets = globalWidgets.add(
+			'arrayWidthBox' -> NumberBox(initRow, Rect(0, 0, 0, 20))
+			    .value_(18)
+			    .action_({ |obj| this.setRoomWidth(obj.value); });
+		);
+
+		StaticText(initRow, Rect(0, 0, 0, 20))
 			.string_("room depth (feet)")
 			.stringColor_(Color.white);
 		
@@ -690,7 +707,8 @@ WFSInterface : WFSObject {
 		// global control row
 		
 		globalRow = VLayoutView(controlViewWindow, Rect(0, 0, 120, 475))
-			.background_(Color.black.alpha_(0.8));
+			.background_(Color.black.alpha_(0.8))
+		    .resize_(4);
 		
 		StaticText(globalRow, Rect(0, 0, 0, 20))
 			.string_("GLOBAL")
@@ -759,13 +777,15 @@ WFSInterface : WFSObject {
 					if(this.getParam('channelRecordMonitorButton').toBool){
 						sequencer.moveAction.value(parent, activeChannel, obj.currentValue);
 					};
-				});
+				})
+			    .resize_(5)
 		);
 		
 		// channel control row
 
 		channelRow = VLayoutView(controlViewWindow, Rect(0, 0, 120, 475))
-			.background_(Color.black.alpha_(0.8));
+			.background_(Color.black.alpha_(0.8))
+		    .resize_(6);
 
 		// grr i wish there was a way to auto generate these controls
 		channelWidgets = channelWidgets.add(
@@ -849,7 +869,8 @@ WFSInterface : WFSObject {
 		// transport row
 		
 		transportRow = VLayoutView(controlViewWindow, Rect(0, 0, 120, 475))
-			.background_(Color.black.alpha_(0.8));
+			.background_(Color.black.alpha_(0.8))
+		    .resize_(6);
 
 		// hmm... might as well add labels wherever possible
 		StaticText(transportRow, Rect(0, 0, 0, 20))
