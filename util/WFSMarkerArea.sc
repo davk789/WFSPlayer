@@ -2,9 +2,9 @@ WFSMarkerArea {
 	/* wrap a view redirected View object, rather than inherit, for cross-platform
 	   compatibility. */
 	var prThis; // the wrapped object
-	var <dimensions, <activeSize=0.9; //  point representation of dimensions in feet
+	var <dimensions, maxWidth, <activeSize=0.9; //  point representation of dimensions in feet
 	var coords, <currentIndex=0, indexCounter=0;
-	var <gridColor, <gridHighlightColor;
+	var <gridColor, <gridHighlightColor, <gridActiveAreaColor;
 	var <markerColor, <selectionColor, <>markerSize=5;
 	var <>maxNumPoints=128; // mouse down may lag with too many points
 	var canMove=false;
@@ -33,7 +33,7 @@ WFSMarkerArea {
 		gridActiveAreaColor = Color.new255(30, 33, 33);
 		prThis.background = Color.black.alpha_(0.8);
 		dimensions = 16 @ 22;
-		activeSizeMax = prThis.bounds.width;
+		maxWidth = prThis.bounds.width;
 
 		prThis.mouseDownAction = {};
 		prThis.mouseUpAction = {};
@@ -49,9 +49,11 @@ WFSMarkerArea {
 				// draw active area
 				Pen.color = Color.new255(65, 70, 70);
 				// ********** draw the rect
-				Pen.addRect(Rect(this.activeStart));
+				Pen.addRect(
+					Rect(this.activeStart, 0, this.activeRange, prThis.bounds.height)
+				);
 
-
+				Pen.fill;
 				// draw grid
 				Pen.color = gridHighlightColor;
 
@@ -318,16 +320,11 @@ WFSMarkerArea {
 	}
 
 	activeStart {
-		var ratio = this.getSegment(activeSize);
-		^prThis.bounds.width * ratio;
+		^(prThis.bounds.width - this.activeRange) / 2;
 	}
 
-	activeEnd {
-		var ratio = 1 - this.getSegment(activeSize);
-		^prThis.bounds.width * ratio;
+	activeRange {
+		^maxWidth * activeSize;
 	}
 
-	getSegment { |range|
-		^(1 - range) / 2;
-	}
 }
