@@ -2,7 +2,7 @@ WFSMarkerArea {
 	/* wrap a view redirected View object, rather than inherit, for cross-platform
 	   compatibility. */
 	var prThis; // the wrapped object
-	var <dimensions; //  point representation of dimensions in feet
+	var <dimensions, <activeSize=0.9; //  point representation of dimensions in feet
 	var coords, <currentIndex=0, indexCounter=0;
 	var <gridColor, <gridHighlightColor;
 	var <markerColor, <selectionColor, <>markerSize=5;
@@ -30,8 +30,10 @@ WFSMarkerArea {
 		selectionColor = Color.green;
 		gridColor = Color.new255(55, 62, 64);
 		gridHighlightColor = Color.new255(80, 95, 99);
+		gridActiveAreaColor = Color.new255(30, 33, 33);
 		prThis.background = Color.black.alpha_(0.8);
 		dimensions = 16 @ 22;
+		activeSizeMax = prThis.bounds.width;
 
 		prThis.mouseDownAction = {};
 		prThis.mouseUpAction = {};
@@ -42,10 +44,15 @@ WFSMarkerArea {
 
 	setDrawFunc {
 		prThis.drawFunc = {
-			coords.do(_.postln);
 			Pen.use{
-				// draw grid
 				var offset;
+				// draw active area
+				Pen.color = Color.new255(65, 70, 70);
+				// ********** draw the rect
+				Pen.addRect(Rect(this.activeStart));
+
+
+				// draw grid
 				Pen.color = gridHighlightColor;
 
 				offset = prThis.bounds.width / (dimensions.x * 2);
@@ -56,7 +63,8 @@ WFSMarkerArea {
 						loc @ prThis.bounds.height
 					);
 				};
-				Pen.stroke;				
+				Pen.stroke;
+
 				
 				dimensions.y.do{ |ind|
 					var loc = (ind / dimensions.y) * prThis.bounds.height;
@@ -81,7 +89,7 @@ WFSMarkerArea {
 					};
 					
 					if(coord.notNil){
-						Pen.addArc(coord, markerSize, 0, 2pi);
+						Pen.addArc(this.coordToLocation(coord), markerSize, 0, 2pi);
 						Pen.fill;
 					};
 				};
@@ -116,13 +124,14 @@ WFSMarkerArea {
 		};
 	}
 
-	handleMouseDown { |coord, mod|
+	handleMouseDown { |loc, mod|
 		// check the add conditions
 		var pointsNotFull, collisionPoint, numPoints;
-						
+		var coord = this.locationToCoord(loc);
 		if(mod != 131072){
 			pointsNotFull = true;
-			collisionPoint = this.getCollisionPoint(coord);
+			// check the collisions point using unscaled values
+			collisionPoint = this.getCollisionPoint(loc);
 
 			if(collisionPoint.isNil){
 				numPoints = this.countPoints;
@@ -142,6 +151,20 @@ WFSMarkerArea {
 		}{
 			canMove = false;
 		};
+	}
+
+	handleMouseUp { |loc, mod|
+		var collisionPoint = this.getCollisionPoint(loc);
+		
+		if((mod == 131072) && collisionPoint.notNil && canAddMarker){
+			this.removeMarker(collisionPoint);
+		};
+	}
+
+	handleMouseMove { |loc, mod|
+		if((mod != 131072) && canMove){
+			this.moveMarker(loc);
+		}
 	}
 
 	dimensions_ { |dim|
@@ -167,37 +190,22 @@ WFSMarkerArea {
 		prThis.refresh;
 	}
 
-	handleMouseUp { |coord, mod|
-		var collisionPoint = this.getCollisionPoint(coord);
-		
-		if((mod == 131072) && collisionPoint.notNil && canAddMarker){
-			this.removeMarker(collisionPoint);
-		};
-	}
-
-	handleMouseMove { |coord, mod|
-		var coordPoint;
-		// now we can drag the markers outside of the visible area
-		coordPoint = coord.x @ coord.y;
-		
-		if((mod != 131072) && canMove){
-			this.moveMarker(coordPoint);
-		}
-	}
-
 	removeMarker { |markerIndex|
 		coords[markerIndex] = nil;
 		prThis.refresh;
 	}
 
-	addMarker { |coord|
+	addMarker { |loc|
+		var coord = this.locationToCoord(loc);
 		coords = coords.add(coord);
 		currentIndex = coords.lastIndex;
 		prThis.refresh;
 	}
 
-	moveMarker { |coord|
+	moveMarker { |loc|
+		var coord = this.locationToCoord(loc);
 		coords[currentIndex] = coord;
+		postln(coords);
 		prThis.refresh;
 	}
 	
@@ -212,11 +220,13 @@ WFSMarkerArea {
 		^ret;
 	}
 
-	getCollisionPoint { |coord|
-		var diff;
+	getCollisionPoint { |loc|
+		var diff, oLoc;
+
 		coords.do{ |obj,ind|
+			oLoc = this.coordToLocation(obj);
 			if(obj.notNil){
-				diff = abs(obj - coord);
+				diff = abs(oLoc - loc);
 				if((diff.x < markerSize) && (diff.y < markerSize)){
 					^ind;	
 				};
@@ -255,15 +265,11 @@ WFSMarkerArea {
 	}
 
 	value {
-		^coords.collect{ |obj|
-			obj / (prThis.bounds.width @ prThis.bounds.height)
-		};
+		^coords;
 	}
 
 	value_ { |val|
-		coords = val.collect{ |obj|
- 			obj * (prThis.bounds.width @ prThis.bounds.height);
-		};
+		coords = val;
 		prThis.refresh;
 	}
 
@@ -295,5 +301,33 @@ WFSMarkerArea {
 	resize_ { |choice|
 		prThis.resize = choice;
 	}
-	
+
+	coordToLocation { |coord|
+		// location == the location of the marker on the view
+		// coords = the list of 0..1 points aka the data value
+		^coord * (prThis.bounds.width @ prThis.bounds.height);
+	}
+
+	locationToCoord { |loc|
+		^loc / (prThis.bounds.width @ prThis.bounds.height)
+	}
+
+	activeSize_ { |size|
+		activeSize = size;
+		this.refresh;
+	}
+
+	activeStart {
+		var ratio = this.getSegment(activeSize);
+		^prThis.bounds.width * ratio;
+	}
+
+	activeEnd {
+		var ratio = 1 - this.getSegment(activeSize);
+		^prThis.bounds.width * ratio;
+	}
+
+	getSegment { |range|
+		^(1 - range) / 2;
+	}
 }

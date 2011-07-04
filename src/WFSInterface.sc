@@ -161,11 +161,12 @@ WFSInterface : WFSObject {
 				if you hit "add channel" more than once without moving the point.... maybe later
 			*/
 			markers = globalWidgets['locationMarkerArea'].value;
+			postln(channelWidgetValues[channelWidgetValues.lastIndex]['channelXPositionBox'] @ channelWidgetValues[channelWidgetValues.lastIndex]['channelYPositionBox']);
 			markers = markers.add(
 				channelWidgetValues[channelWidgetValues.lastIndex]['channelXPositionBox']
 			        @
 				channelWidgetValues[channelWidgetValues.lastIndex]['channelYPositionBox']
-			);
+				);
 			globalWidgets['locationMarkerArea'].value = markers;
 
 			// add an item to channelLabel
