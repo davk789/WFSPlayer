@@ -45,7 +45,6 @@ WFSMarkerArea {
 	setDrawFunc {
 		prThis.drawFunc = {
 			Pen.use{
-				var offset;
 				// draw active area
 				Pen.color = Color.new255(65, 70, 70);
 				// ********** draw the rect
@@ -57,9 +56,8 @@ WFSMarkerArea {
 				// draw grid
 				Pen.color = gridHighlightColor;
 
-				offset = prThis.bounds.width / (dimensions.x * 2);
 				dimensions.x.do{ |ind|
-					var loc = ((ind / dimensions.x) * prThis.bounds.width) + offset;
+					var loc = ((ind / (dimensions.x - 1)) * this.activeRange) + this.activeStart;
 					Pen.line(
 						loc @ 0,
 						loc @ prThis.bounds.height
