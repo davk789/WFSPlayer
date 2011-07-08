@@ -1,48 +1,3 @@
-WFSMarkerAreaCoords {
-	/**
-		attempting to use a wrapper class for the point data. This data should maintain
-		two parallel sets of data. 1st is the location of all the drawn points. The
-		other half is the numerical value associated with the points. Maybe keeping this
-		data in its own class will help keep things clearer.
-	*/
-
-	// this class should check that the arrays match
-	var <>values, <>locations;
-
-	*new {
-		^super.new.init_wfsmarkerareacoords;
-	}
-
-	init_wfsmarkerareacoords {
-		values = Array();
-		locations = Array();
-	}
-
-	add { |locs, vals|
-		locations = locations.add(locs);
-		values = values.add(vals);
-	}
-
-	clear { |ind|
-		values[ind] = nil;
-		locations[ind] = nil;
-	}
-
-	lastIndex {
-		^values.lastIndex;
-	}
-
-	set { |ind, locs, vals|
-		values[ind] = vals;
-		locations[ind] = locs;
-	}
-
-	setValue { |locs, vals|
-		values= vals;
-		locations = locs;
-	}
-}
-
 WFSMarkerArea {
 	/* wrap a view redirected View object, rather than inherit, for cross-platform
 	   compatibility. */
@@ -70,9 +25,7 @@ WFSMarkerArea {
 		// when removing elements, the value at the index is set to nil,
 		// rather than removing the value from the array outright
 		// so be sure to check for nil
-		// ** this should remain unchanged
-		// should this be a dict?
-		coords = WFSMarkerAreaCoords(); // trying a different data structure here
+		coords = Array();
 		markerColor = Color.yellow;
 		selectionColor = Color.green;
 		gridColor = Color.new255(55, 62, 64);
@@ -99,6 +52,7 @@ WFSMarkerArea {
 				);
 
 				Pen.fill;
+
 				// draw grid
 				Pen.color = gridHighlightColor;
 
@@ -127,8 +81,7 @@ WFSMarkerArea {
 				};
 
 				// draw location points
-				//coords.locations.do{ |coord, ind|
-				coords.values.do{ |coord, ind|
+				coords.do{ |coord, ind|
 					if(ind == currentIndex){ 
 						Pen.color = selectionColor;
 					}{
@@ -239,27 +192,27 @@ WFSMarkerArea {
 	}
 
 	removeMarker { |markerIndex|
-		coords.clear(markerIndex);
+		coords[markerIndex] = nil;
 		prThis.refresh;
 	}
 
 	addMarker { |loc|
 		var coord = this.locationToValue(loc);
-		coords.add(loc, coord);
+		coords = coords.add(coord);
 		currentIndex = coords.lastIndex;
 		prThis.refresh;
 	}
 
 	moveMarker { |loc|
 		var coord = this.locationToValue(loc);
-		coords.set(currentIndex, loc, coord);
-		postln(coords.values);
+		coords[currentIndex] = coord;
+		postln(coords);
 		prThis.refresh;
 	}
 	
 	countPoints {
 		var ret=0;
-		coords.values.do{ |obj,ind| 
+		coords.do{ |obj,ind| 
 			if(obj.notNil){
 				ret = ret + 1;
 			};
@@ -271,7 +224,7 @@ WFSMarkerArea {
 	getCollisionPoint { |loc|
 		var diff;
 
-		coords.values.do{ |obj,ind|
+		coords.do{ |obj,ind|
 			if(obj.notNil){
 				diff = abs(this.valueToLocation(obj) - loc);
 				if((diff.x < markerSize) && (diff.y < markerSize)){
@@ -294,22 +247,20 @@ WFSMarkerArea {
 	}
 
 	setValueForIndex { |ind, val|
-		var loc = this.valueToLocation(val);
-		coords.set(ind, loc, val);
+		coords[ind] = val;
 		prThis.refresh;
 	}
 
 	getValueForIndex { |ind|
-		^coords.values[ind];
+		^coords[ind];
 	}
 
 	value {
-		^coords.values;
+		^coords;
 	}
 
 	value_ { |vals|
-		var locs = vals.collect{ |obj| this.valueToLocation(obj) };
-		coords.setValue(locs, vals);
+		coords = vals;
 		prThis.refresh;
 	}
 
