@@ -25,7 +25,9 @@ WFSMarkerArea {
 		// when removing elements, the value at the index is set to nil,
 		// rather than removing the value from the array outright
 		// so be sure to check for nil
-		coords = Array();
+		// ** this should remain unchanged
+		// should this be a dict?
+		coords = Array(); // where to draw the points, not their values
 		markerColor = Color.yellow;
 		selectionColor = Color.green;
 		gridColor = Color.new255(55, 62, 64);
@@ -80,6 +82,8 @@ WFSMarkerArea {
 				};
 
 				// draw location points
+				// **** reading, no need to alter this code -- when this is fixed, these
+				// lines will 
 				coords.do{ |coord, ind|
 					if(ind == currentIndex){ 
 						Pen.color = selectionColor;
@@ -88,7 +92,7 @@ WFSMarkerArea {
 					};
 					
 					if(coord.notNil){
-						Pen.addArc(this.coordToLocation(coord) + (this.activeStart @ 0), markerSize, 0, 2pi);
+						Pen.addArc(this.coordToLocation(coord), markerSize, 0, 2pi);
 						Pen.fill;
 					};
 				};
@@ -162,7 +166,8 @@ WFSMarkerArea {
 
 	handleMouseMove { |loc, mod|
 		if((mod != 131072) && canMove){
-			this.moveMarker(loc - (this.activeStart @ 0));
+			//			this.moveMarker(loc - (this.activeStart @ 0));
+			this.moveMarker(loc);
 		}
 	}
 
