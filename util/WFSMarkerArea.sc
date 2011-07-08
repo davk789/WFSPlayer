@@ -162,7 +162,7 @@ WFSMarkerArea {
 
 	handleMouseMove { |loc, mod|
 		if((mod != 131072) && canMove){
-			this.moveMarker(loc * (this.activeStart @ 0));
+			this.moveMarker(loc - (this.activeStart @ 0));
 		}
 	}
 
@@ -251,16 +251,12 @@ WFSMarkerArea {
 	}
 
 	setValueForIndex { |ind, val|
-		var scaledVal;
-		// set a point scale 0..1 for an index
-		scaledVal = val * (prThis.bounds.width @ prThis.bounds.height);
-
-		coords[ind] = scaledVal;
+		coords[ind] = val;
 		prThis.refresh;
 	}
 
 	getValueForIndex { |ind|
-		^coords[ind] / (prThis.bounds.width @ prThis.bounds.height);
+		^coords[ind];
 	}
 
 	value {
@@ -326,6 +322,10 @@ WFSMarkerArea {
 
 	activeRangeZeroOne {
 		^this.activeRange / prThis.bounds.width;
+	}
+
+	activeStartZeroOne {
+		^this.activeStart / prThis.bounds.width;
 	}
 
 }
