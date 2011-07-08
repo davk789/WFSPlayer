@@ -47,7 +47,6 @@ WFSMarkerArea {
 			Pen.use{
 				// draw active area
 				Pen.color = Color.new255(65, 70, 70);
-				// ********** draw the rect
 				Pen.addRect(
 					Rect(this.activeStart, 0, this.activeRange, prThis.bounds.height)
 				);
@@ -89,7 +88,7 @@ WFSMarkerArea {
 					};
 					
 					if(coord.notNil){
-						Pen.addArc(this.coordToLocation(coord), markerSize, 0, 2pi);
+						Pen.addArc(this.coordToLocation(coord) + (this.activeStart @ 0), markerSize, 0, 2pi);
 						Pen.fill;
 					};
 				};
@@ -163,7 +162,7 @@ WFSMarkerArea {
 
 	handleMouseMove { |loc, mod|
 		if((mod != 131072) && canMove){
-			this.moveMarker(loc);
+			this.moveMarker(loc * (this.activeStart @ 0));
 		}
 	}
 
@@ -323,6 +322,10 @@ WFSMarkerArea {
 
 	activeRange {
 		^maxWidth * activeSize;
+	}
+
+	activeRangeZeroOne {
+		^this.activeRange / prThis.bounds.width;
 	}
 
 }
