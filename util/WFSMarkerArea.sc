@@ -294,22 +294,17 @@ WFSMarkerArea {
 	}
 
 	valueToLocation { |val|
-		var prange = activeSize @ 1;
+		var prange = this.activeRangeZeroOne @ 1;
 		var pstart = this.activeStartZeroOne @ 0;
 		var zoom = (val * prange) + pstart;
 		^zoom * (prThis.bounds.width @ prThis.bounds.height);
 	}
 
 	locationToValue { |loc|
-		var prange = activeSize @ 1;
+		var prange = this.activeRangeZeroOne @ 1;
 		var pstart = this.activeStartZeroOne @ 0;
 		var scale = loc / (prThis.bounds.width @ prThis.bounds.height);
 		^(scale - pstart) / prange;
-	}
-
-	activeSize_ { |size|
-		activeSize = size;
-		prThis.refresh;
 	}
 
 	activeStart {
@@ -317,14 +312,18 @@ WFSMarkerArea {
 	}
 
 	activeStartZeroOne {
-		^this.activeStart / maxWidth;
+		^this.activeStart / prThis.bounds.width;
 	}
 
 	activeRange {
 		^maxWidth * activeSize;
 	}
 
-	activeRange_ { |rng|
+	activeRangeZeroOne {
+		^this.activeRange / prThis.bounds.width;
+	}
+
+	activeSize_ { |rng|
 		activeSize = rng;
 		maxWidth = prThis.bounds.width;
 		prThis.refresh;
