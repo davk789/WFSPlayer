@@ -174,16 +174,14 @@ WFSEngine : WFSObject {
 		// add a static ContiguousBlockAllocator here, to avoid problems
 		//this.class.inBusCounter = 20;
 		
-		// add the channels
+		// add the channels. depends on the interface
 		interface.channelWidgetValues.size.do{ |ind|
 			this.addChannel(ind);
 		};
 	}
 
-	updateAllLocations {
-		var locations;
-		locations = interface.globalWidgets['locationMarkerArea'].value;
-		locations.do{ |loc, ind|
+	updateAllLocations { |locs|
+		locs.do{ |loc, ind|
 			this.updateLocation(ind, loc);
 		};	
 	}

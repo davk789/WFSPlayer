@@ -380,7 +380,7 @@ WFSInterface : WFSObject {
 	setChannelInvertDelay { |choice|
 		// engine accesses this value, no need to push to engine
 		this.setParam('channelInvertDelayButton', choice);
-		engine.updateAllLocations; // call engine refresh to update the params
+		engine.updateAllLocations(globalWidgets['locationMarkerArea'].value); // call engine refresh to update the params
 	}
 	
 	setChannelRecord { |val|
@@ -475,7 +475,7 @@ WFSInterface : WFSObject {
 		channelWidgetValues.do{ |obj,ind|
 			obj['channelInvertDelayButton'] = val;
 		};
-		engine.updateAllLocations;
+		engine.updateAllLocations(globalWidgets['locationMarkerArea'].value);
 
 		channelWidgets['channelInvertDelayButton'] = val;
 	}
@@ -568,12 +568,20 @@ WFSInterface : WFSObject {
 	
 	setRoomWidth { |width|
 		globalWidgetValues['roomWidthBox'] = width;
+		this.updateActiveMarkerArea;
 		engine.roomWidth = globalWidgetValues['roomWidthBox'];
 	}
 
 	setArrayWidth { |width|
 		globalWidgetValues['arrayWidthBox'] = width;
-		engine.roomWidth = globalWidgetValues['arrayWidthBox'];		
+		this.updateActiveMarkerArea;
+	}
+
+	updateActiveMarkerArea {
+		var size = globalWidgetValues['arrayWidthBox'] / globalWidgetValues['roomWidthBox'];
+		size.postln;
+		globalWidgets['locationMarkerArea'].activeSize = size;
+		    
 	}
 
 	setRoomDepth { |depth|
@@ -681,7 +689,7 @@ WFSInterface : WFSObject {
 		globalWidgets = globalWidgets.add(
 			'arrayWidthBox' -> NumberBox(initRow, Rect(0, 0, 0, 20))
 			    .value_(18)
-			    .action_({ |obj| this.setRoomWidth(obj.value); });
+			    .action_({ |obj| this.setArrayWidth(obj.value); });
 		);
 
 		StaticText(initRow, Rect(0, 0, 0, 20))

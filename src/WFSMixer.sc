@@ -51,7 +51,7 @@ WFSMixer {
 
 	initializeDeferred {
 		/**
-			deferred initialization -- this comes after the server is booted, and after preliminary
+			this comes after the server is booted, and after preliminary
 			initialization for all classes has been finished. Therefore, any data that relies on
 			other objects or on the running server should be initialized in a function that is
 			called here.
