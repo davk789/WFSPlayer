@@ -14,6 +14,8 @@ WFSInterface : WFSObject {
 	var defaultChannelWidgetValues;
 	var <channelWidgetValues, <globalWidgetValues;
 	var windowTitle; // superfluous?
+	var winData; // gets the stored window size, should also be able to 
+	             // gather other data as well (browser state, etc.)
 
 	*new { |name|
 		^super.new.init_wfsinterface(name);
@@ -23,6 +25,7 @@ WFSInterface : WFSObject {
 		windowTitle = name ? "WFSMixer";
 		globalWidgets = Dictionary();
 		channelWidgets = Dictionary();
+
 		globalWidgetValues = Dictionary[
 			'numSpeakersBox'    -> 16,
 			'airTempBox'        -> 75,
@@ -56,7 +59,15 @@ WFSInterface : WFSObject {
 
 	initDeferred {		
 		// startup functions
-		// this relies on the sequencer, so, put it in initDeferred
+
+		Platform.case(
+			'windows', {
+				postln("not getting window data on windows!");
+			}, 
+			{
+				winData = prefManager.retrieveWindowData;
+			}
+		);
 		this.makeGUI;
 
 		globalWidgetValues.keysValuesDo{ |key,val|
@@ -612,18 +623,29 @@ WFSInterface : WFSObject {
 	
 	makeGUI {
 		var presetList;
+		var winBounds;
+		var columnWidth = 120;
+		var markerAreaWidth;
 		var scrollingNBColor = Color.new255(255, 255, 200);
 
-		controlViewWindow = Window(windowTitle, Rect(500.rand, 500.rand, 980, 485))
+		if(winData.notNil){
+			winBounds = winData[0];
+		}{
+			winBounds = Rect(500.rand, 500.rand, 980, 485)
+		};
+
+		markerAreaWidth = winBounds.width - (columnWidth * 4.2);
+
+		controlViewWindow = Window(windowTitle, winBounds)
 		    .onClose_({ this.saveWindowData; })
 		    .front;
 		controlViewWindow.view.decorator = FlowLayout(controlViewWindow.view.bounds);
 		
-		initRow = VLayoutView(controlViewWindow, Rect(0, 0, 120, 475))
+		// settings row
+		
+		initRow = VLayoutView(controlViewWindow, Rect(0, 0, columnWidth, winBounds.height))
 			.background_(Color.black.alpha_(0.8))
 		    .resize_(4);
-		
-		// settings row
 		
 		globalWidgets = globalWidgets.add(
 			'presetSaveButton' -> Button(initRow, Rect(0, 0, 0, 20))
@@ -725,7 +747,7 @@ WFSInterface : WFSObject {
 		
 		// global control row
 		
-		globalRow = VLayoutView(controlViewWindow, Rect(0, 0, 120, 475))
+		globalRow = VLayoutView(controlViewWindow, Rect(0, 0, columnWidth, winBounds.height))
 			.background_(Color.black.alpha_(0.8))
 		    .resize_(4);
 		
@@ -786,7 +808,8 @@ WFSInterface : WFSObject {
 		// marker area
 
 		globalWidgets = globalWidgets.add(
-			'locationMarkerArea' -> WFSMarkerArea(controlViewWindow, Rect(0, 0, 475, 475))
+			// the width value should be calculated from the geometry of the other columns
+			'locationMarkerArea' -> WFSMarkerArea(controlViewWindow, Rect(0, 0, markerAreaWidth, winBounds.height))
 			    .canAddMarker_(false)
 			    .mouseDownAction_({ |obj|
 					parent.loadActiveChannel(obj.currentIndex);
@@ -802,7 +825,7 @@ WFSInterface : WFSObject {
 		
 		// channel control row
 
-		channelRow = VLayoutView(controlViewWindow, Rect(0, 0, 120, 475))
+		channelRow = VLayoutView(controlViewWindow, Rect(0, 0, columnWidth, winBounds.height))
 			.background_(Color.black.alpha_(0.8))
 		    .resize_(6);
 
@@ -887,7 +910,7 @@ WFSInterface : WFSObject {
 		
 		// transport row
 		
-		transportRow = VLayoutView(controlViewWindow, Rect(0, 0, 120, 475))
+		transportRow = VLayoutView(controlViewWindow, Rect(0, 0, columnWidth, winBounds.height))
 			.background_(Color.black.alpha_(0.8))
 		    .resize_(6);
 

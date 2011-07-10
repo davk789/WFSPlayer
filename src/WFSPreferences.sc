@@ -60,10 +60,18 @@ WFSPreferences : WFSObject {
 	}
 
 	retrieveWindowData {
-		var doc = DOMDocument(presetRoot ++ ".wfsdata");
-		var winSize = doc.getDocumentElement.getElementsByTagName(winsize).interpret;
+		var filename, doc, winSize;
+		filename = presetRoot ++ ".wfsdata";
+
+		if(File.exists(filename).not){
+			^nil;
+		};
+
+		doc = DOMDocument(filename);
+		winSize = doc.getElementsByTagName("winsize")[0].getText.interpret;
 		postln(winSize);
 		^[winSize];  // return a list for other data that may be retrieved in the future
+
 	}
 
 	// presets
@@ -188,12 +196,13 @@ WFSPreferences : WFSObject {
 	}
 	
 	getPresetList {
-		var paths;
+		var paths, sep;
 		
+		sep = Platform.pathSeparator;
 		paths = pathMatch(presetRoot ++ "*.xml");
 
 		^paths.collect{ |obj, ind|
-			obj.split($/).last; // might want to strip off the file extension later
+			obj.split(sep).last; // might want to strip off the file extension later
 		};
 	}
 

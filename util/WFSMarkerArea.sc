@@ -28,9 +28,9 @@ WFSMarkerArea {
 		coords = Array();
 		markerColor = Color.yellow;
 		selectionColor = Color.green;
-		gridColor = Color.new255(55, 62, 64);
-		gridHighlightColor = Color.new255(80, 95, 99);
-		gridActiveAreaColor = Color.new255(30, 33, 33);
+		gridColor = Color.new255(55, 55, 64);
+		gridHighlightColor = Color.new255(80, 80, 99);
+		gridActiveAreaColor = Color.new255(30, 30, 33);
 		prThis.background = Color.black.alpha_(0.8);
 		dimensions = 16 @ 22;
 		maxWidth = prThis.bounds.width;
