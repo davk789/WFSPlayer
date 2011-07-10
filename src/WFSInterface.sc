@@ -600,13 +600,23 @@ WFSInterface : WFSObject {
 		engine.masterVolume = globalWidgetValues['masterVolumeBox'];
 	}
 
+	saveWindowData {
+		Platform.case('windows', {
+			warn("can't store window dimensions on win!");
+			^this;
+		});
+		prefManager.storeWindowData(controlViewWindow);
+	}
+
 	// barf the gui
 	
 	makeGUI {
 		var presetList;
 		var scrollingNBColor = Color.new255(255, 255, 200);
 
-		controlViewWindow = Window(windowTitle, Rect(500.rand, 500.rand, 980, 485)).front;
+		controlViewWindow = Window(windowTitle, Rect(500.rand, 500.rand, 980, 485))
+		    .onClose_({ this.saveWindowData; })
+		    .front;
 		controlViewWindow.view.decorator = FlowLayout(controlViewWindow.view.bounds);
 		
 		initRow = VLayoutView(controlViewWindow, Rect(0, 0, 120, 475))

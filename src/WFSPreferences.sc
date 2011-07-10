@@ -1,6 +1,8 @@
 WFSPreferences : WFSObject {
 	/**
-		Store and retrieve preferences files. 
+		Manage static data (i.e. saved settings/window dimensions).
+		this class handles the presets saved from the interface. It also saves the window
+		dimensions and any other data that needs to be retrieved at startup.
 
 		there is a helpful explanation of DOMDocument at:
 		http://swiki.hfbk-hamburg.de:8888/MusicTechnology/747
@@ -19,6 +21,53 @@ WFSPreferences : WFSObject {
 
 	}
 	
+	// window state
+
+	storeWindowData { |win|
+		/*
+			Right now this only saves window size. This can also be used to 
+			save the state of other data as well. For instance, a file browser
+			would be a nice way to manage presets.
+
+			WFSPreferences:storeWindowData gets references to the objects it needs to examine to
+			save their state.
+		*/
+		var file, cvBounds, doc, root, dimTag, dimVal;
+		
+		file = File(presetRoot ++ ".wfsdata", "w+");
+		cvBounds = win.bounds;
+		doc = DOMDocument();
+
+		root = doc.createElement("wfsplayer-data");
+		doc.appendChild(root);
+
+		// window size
+		dimTag = doc.createElement("winsize");
+		dimVal = doc.createTextNode(
+			"Rect(" ++ cvBounds.left ++ ", " ++cvBounds.top ++ ", " ++cvBounds.width ++ ", " ++ cvBounds.height ++ ")"
+		);
+
+		dimTag.appendChild(dimVal);
+		root.appendChild(dimTag);
+
+		// other objects go here
+		// ...
+
+		// cleanup
+		
+		doc.write(file);
+		file.close;
+	}
+
+	retrieveWindowData {
+		var doc = DOMDocument(presetRoot ++ ".wfsdata");
+		var winSize = doc.getDocumentElement.getElementsByTagName(winsize).interpret;
+		postln(winSize);
+		^[winSize];  // return a list for other data that may be retrieved in the future
+	}
+
+	// presets
+
 	readPrefFile { |filename|
 		var doc;
 		doc = DOMDocument(presetRoot ++ filename ++ ".xml");
