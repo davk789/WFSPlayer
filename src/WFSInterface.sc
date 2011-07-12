@@ -533,7 +533,7 @@ WFSInterface : WFSObject {
 			this.removeChannel(0);
 		};
 		
-		/*
+
 		globalWidgetValues.keysValuesDo{ |key,val|
 			globalWidgets[key].valueAction = val;
 		};
@@ -549,7 +549,7 @@ WFSInterface : WFSObject {
 		channelCounter = 0;
 		
 		globalWidgets['locationMarkerArea'].enabled = false;
-			channelWidgets.do{ |wid| wid.enabled = false; };*/
+		channelWidgets.do{ |wid| wid.enabled = false; };
 
 		//
 	}
