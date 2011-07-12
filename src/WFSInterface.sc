@@ -532,26 +532,22 @@ WFSInterface : WFSObject {
 		while{channelWidgetValues.size > 0}{
 			this.removeChannel(0);
 		};
-		
 
-		globalWidgetValues.keysValuesDo{ |key,val|
+		defaultGlobalWidgetValues.keysValuesDo{ |key,val|
 			globalWidgets[key].valueAction = val;
 		};
-		
-		channelWidgets.keysValuesDo{ |key,widget|
-			widget.value = defaultChannelWidgetValues[key];
-		};
 
-		channelWidgets['channelSequenceMenu'].items = nil;
-		channelWidgets['channelLabel'] = "Channel 1";
+		defaultChannelWidgetValues.keysValuesDo{ |key,val|
+			channelWidgets[key].value = val;
+		};
+		
+		channelWidgets['channelSequenceMenu'].items = Array();
+		channelWidgets['channelLabel'].string = "Channel 1";
 		globalWidgets['locationMarkerArea'].value = Array();
 
-		channelCounter = 0;
-		
 		globalWidgets['locationMarkerArea'].enabled = false;
 		channelWidgets.do{ |wid| wid.enabled = false; };
 
-		//
 	}
 
 	loadPreset { |data, globalData|
@@ -700,7 +696,7 @@ WFSInterface : WFSObject {
 		globalWidgets = globalWidgets.add(
 			'presetLoadButton' -> Button(initRow, Rect(0, 0, 0, 20))
 			    .states_([["reload", Color.white, Color.new255(150, 150, 255, 200)]])
-			    .action_({ |obj| parent.loadPreset(globalWidgets['presetLoadButton'].item); });
+			    .action_({ |obj| parent.loadPreset(globalWidgets['presetListMenu'].item); });
 		);		
 
 		globalWidgets = globalWidgets.add(
