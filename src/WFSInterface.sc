@@ -11,11 +11,9 @@ WFSInterface : WFSObject {
 	var <globalWidgets, <channelWidgets; // all gui elements are kept in a Dict for easy access
 
 	// parameter defaults and storage
-	var defaultChannelWidgetValues;
+	var defaultChannelWidgetValues, defaultGlobalWidgetValues;
 	var <channelWidgetValues, <globalWidgetValues;
-	var windowTitle; // superfluous?
-	var winData; // gets the stored window size, should also be able to 
-	             // gather other data as well (browser state, etc.)
+	var windowTitle;
 
 	*new { |name|
 		^super.new.init_wfsinterface(name);
@@ -26,7 +24,7 @@ WFSInterface : WFSObject {
 		globalWidgets = Dictionary();
 		channelWidgets = Dictionary();
 
-		globalWidgetValues = Dictionary[
+		defaultGlobalWidgetValues = Dictionary[
 			'numSpeakersBox'    -> 16,
 			'airTempBox'        -> 75,
 			'roomWidthBox'      -> 20,
@@ -53,12 +51,13 @@ WFSInterface : WFSObject {
 			'channelPlayButton'          -> 0,
 			'channelSequenceMenu'        -> 0,
 		];
+
 		
-		postln(this.class.asString ++ " initialized");
 	}
 
 	initDeferred {		
-		// startup functions
+		var winData; // windata == an array of all information needed to build the 
+		             // interface (i.e. window dimensions, browser state, etc.)
 
 		Platform.case(
 			'windows', {
@@ -68,11 +67,13 @@ WFSInterface : WFSObject {
 				winData = prefManager.retrieveWindowData;
 			}
 		);
-		this.makeGUI;
-
+		this.makeGUI(winData);
+		
+		globalWidgetValues = defaultGlobalWidgetValues.copy;
 		globalWidgetValues.keysValuesDo{ |key,val|
-			globalWidgets[key].value = val;
-		}
+			globalWidgets[key].valueAction = val;
+		};
+
 	}
 
 	// called directly by the sequencer
@@ -158,7 +159,7 @@ WFSInterface : WFSObject {
 			- activate the newly created channel
 		*/
 		if(channelWidgetValues.isNil){
-			this.initializeChannels;
+			this.addFirstChannel;
 		}{ // else
 			channelCounter = channelCounter + 1;
 
@@ -190,7 +191,7 @@ WFSInterface : WFSObject {
 		};
 	}
 
-	initializeChannels {
+	addFirstChannel {
 		/*
 			initialization tasks performed here:
 			- set the numChannels member variable to 1
@@ -271,6 +272,8 @@ WFSInterface : WFSObject {
 			// used to be called here
 			parent.loadActiveChannel(0);
 		};
+
+		postf("channelWidgetValues.size: %\n", channelWidgetValues.size);
 
 	}
 
@@ -521,6 +524,36 @@ WFSInterface : WFSObject {
 		globalWidgets['presetListMenu'].items = prefManager.getPresetList;
 	}
 
+	clear {
+		/* reset the interface to its original state */
+		// this still needs to call removeChannel for every channel, before 
+		// hard resetting the widgets etc.
+
+		while{channelWidgetValues.size > 0}{
+			this.removeChannel(0);
+		};
+		
+		/*
+		globalWidgetValues.keysValuesDo{ |key,val|
+			globalWidgets[key].valueAction = val;
+		};
+		
+		channelWidgets.keysValuesDo{ |key,widget|
+			widget.value = defaultChannelWidgetValues[key];
+		};
+
+		channelWidgets['channelSequenceMenu'].items = nil;
+		channelWidgets['channelLabel'] = "Channel 1";
+		globalWidgets['locationMarkerArea'].value = Array();
+
+		channelCounter = 0;
+		
+		globalWidgets['locationMarkerArea'].enabled = false;
+			channelWidgets.do{ |wid| wid.enabled = false; };*/
+
+		//
+	}
+
 	loadPreset { |data, globalData|
 		var values, numSequences;
 
@@ -529,13 +562,11 @@ WFSInterface : WFSObject {
 		channelWidgetValues = data;
 		globalWidgetValues = globalData;
 
-		channelWidgetValues.do{ |obj|
-			postf("the channel delay invert value is %\n", obj['channelInvertDelayButton']);
-		};
 		// update the interface
 
 		globalWidgetValues.keysValuesDo{ |key, val|
-			globalWidgets[key].value = val;
+			globalWidgets[key].valueAction = val; // don't know if valueAction needs to 
+			// be called here, but maybe it can't hurt
 		};
 		
 		channelWidgets['channelDisplay'].items = channelWidgetValues.collect{ |obj|
@@ -612,6 +643,7 @@ WFSInterface : WFSObject {
 	}
 
 	saveWindowData {
+		// called by controlViewWindow.onClose
 		Platform.case('windows', {
 			warn("can't store window dimensions on win!");
 			^this;
@@ -621,7 +653,7 @@ WFSInterface : WFSObject {
 
 	// barf the gui
 	
-	makeGUI {
+	makeGUI { |winData|
 		var presetList;
 		var winBounds;
 		var columnWidth = 120;
@@ -669,6 +701,12 @@ WFSInterface : WFSObject {
 			'presetLoadButton' -> Button(initRow, Rect(0, 0, 0, 20))
 			    .states_([["reload", Color.white, Color.new255(150, 150, 255, 200)]])
 			    .action_({ |obj| parent.loadPreset(globalWidgets['presetLoadButton'].item); });
+		);		
+
+		globalWidgets = globalWidgets.add(
+			'presetClearButton' -> Button(initRow, Rect(0, 0, 0, 20))
+			    .states_([["clear", Color.white, Color.new255(150, 150, 255, 200)]])
+			    .action_({ |obj| this.clear; });
 		);		
 
 		StaticText(initRow, Rect(0, 0, 0, 20))

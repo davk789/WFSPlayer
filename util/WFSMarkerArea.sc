@@ -259,6 +259,11 @@ WFSMarkerArea {
 		^coords;
 	}
 
+	valueAction_ { |val|
+		this.value = val;
+		this.mouseDownAction.value;
+	}
+
 	value_ { |vals|
 		coords = vals;
 		prThis.refresh;

@@ -18,7 +18,6 @@ WFSPreferences : WFSObject {
 		// maybe move this to a different location later
 		presetRoot = Platform.userAppSupportDir ++  "/Extensions/WFSPlayer/prefs/";
 		
-
 	}
 	
 	// window state

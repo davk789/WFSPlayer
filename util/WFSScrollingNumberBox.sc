@@ -1,7 +1,7 @@
 WFSScrollingNumberBox {
 	/* wrap a view redirected number box, rather than subclass. Support Cocoa this way.
 	   */
-	var pr_this; // the wrapped number box
+	var prThis; // the wrapped number box
 	var lastCoord=0;
 	// WARNING: this class implements the same function for action and mouseMoveAction
 	var subclassAction, subclassMouseUpAction;
@@ -18,9 +18,9 @@ WFSScrollingNumberBox {
 	}
 	
 	init_wfsscrollingnumberbox { |par,bnd|
-		pr_this = NumberBox(par,bnd);
-		pr_this.value = 0;
-		pr_this.action = {};	
+		prThis = NumberBox(par,bnd);
+		prThis.value = 0;
+		prThis.action = {};	
 	}
 	
 /*	mouseDownAction_ { |func|
@@ -48,25 +48,29 @@ WFSScrollingNumberBox {
 
 	action_ { |func|
 		subclassAction = func;
-		pr_this.action = { |obj,x,y,mod|
+		prThis.action = { |obj,x,y,mod|
 			this.checkRange;
 			subclassAction.value(obj);
 		};
 
-		pr_this.mouseMoveAction = { |obj,x,y,mod|
+		prThis.mouseMoveAction = { |obj,x,y,mod|
 			this.checkRange;
 			this.handleMouseMove(y, mod);
 			subclassAction.value(obj, x, y, mod);
 		};
 	}
 
+	valueAction_ { |val|
+		prThis.valueAction = val;
+	}
+
 	checkRange {
 		if(minVal.notNil){
-			if(pr_this.value < minVal){ pr_this.value = minVal; };
+			if(prThis.value < minVal){ prThis.value = minVal; };
 		};
 
 		if(maxVal.notNil){
-			if(pr_this.value > maxVal){ pr_this.value = maxVal; };
+			if(prThis.value > maxVal){ prThis.value = maxVal; };
 		};
 	}
 	
@@ -82,38 +86,38 @@ WFSScrollingNumberBox {
 		];
 		
 		if(lastCoord < loc){
-			pr_this.value = pr_this.value - incrementAmount[mod];
+			prThis.value = prThis.value - incrementAmount[mod];
 		};
 		
 		if(lastCoord > loc){
-			pr_this.value = pr_this.value + incrementAmount[mod];
+			prThis.value = prThis.value + incrementAmount[mod];
 		};
 		
 		lastCoord = loc;
 	}
 	
 	value_ { |val|
-		pr_this.value = val;
+		prThis.value = val;
 	}
 	
 	value {
-		^pr_this.value;
+		^prThis.value;
 	}
 	
 	background_ { |color|
-		pr_this.background = color;
+		prThis.background = color;
 	}
 	
 	background {
-		^pr_this.background;
+		^prThis.background;
 	}
 	
 	enabled_ { |choice|
-		pr_this.enabled = choice;
+		prThis.enabled = choice;
 	}
 	
 	enabled {
-		pr_this.enabled;
+		prThis.enabled;
 	}
 
 }
