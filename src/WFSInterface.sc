@@ -704,29 +704,6 @@ WFSInterface : WFSObject {
 		);		
 
 		StaticText(initRow, Rect(0, 0, 0, 20))
-			.string_("number of speakers")
-			.stringColor_(Color.white);
-
-		globalWidgets = globalWidgets.add(
-			'numSpeakersBox' ->	NumberBox(initRow, Rect(0, 0, 0, 20))
-			     .value_(engine.numChannels) // there, now that top-level value is used :P
-			     .action_({ |obj| this.setNumSpeakers(obj.value) });
-		);
-		
-		/*
-			let's assume for now that the width refers to the outermost speakers, and
-			all other speakers are equally spaced between the ends.
-			StaticText(initRow, Rect(0, 0, 0, 20))
-			.string_("spacing (inches)")
-			.stringColor_(Color.white);
-
-		globalWidgets = globalWidgets.add(
-			'speakerSpacingBox' -> WFSScrollingNumberBox(initRow, Rect(0, 0, 0, 20))
-			    .value_(18)
-			    .background_(scrollingNBColor);
-		);
-		*/
-		StaticText(initRow, Rect(0, 0, 0, 20))
 			.string_("air temp. (farenheit)")
 			.stringColor_(Color.white);
 
@@ -736,6 +713,16 @@ WFSInterface : WFSObject {
 			    .action_({ |obj| this.setAirTemp(obj.value); });
 		);
 
+		StaticText(initRow, Rect(0, 0, 0, 20))
+			.string_("number of speakers")
+			.stringColor_(Color.white);
+
+		globalWidgets = globalWidgets.add(
+			'numSpeakersBox' ->	NumberBox(initRow, Rect(0, 0, 0, 20))
+			     .value_(engine.numChannels) // there, now that top-level value is used :P
+			     .action_({ |obj| this.setNumSpeakers(obj.value) });
+		);
+		
 		StaticText(initRow, Rect(0, 0, 0, 20))
 			.string_("room width (feet)")
 			.stringColor_(Color.white);
@@ -833,7 +820,7 @@ WFSInterface : WFSObject {
 
 		globalWidgets = globalWidgets.add(
 			'addChannelButton' -> Button(globalRow, Rect(0, 0, 0, 20))
-			    .states_([["add channel", Color.black, Color.grey]])
+			    .states_([["add channel", Color.white, Color.black]])
 			    .action_({ parent.addChannel; })
 		);
 

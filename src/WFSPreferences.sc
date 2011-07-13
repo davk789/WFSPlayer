@@ -247,7 +247,7 @@ WFSPreferences : WFSObject {
 
 		while{ globalParamData.notNil }{
 			var key = globalParamData.getAttribute("id").asSymbol;
-			var val = globalParamData.getText.asInt;
+			var val = globalParamData.getText.asFloat;
 
 			outGlobalParams = outGlobalParams.add(key -> val);
 
