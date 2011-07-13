@@ -336,8 +336,6 @@ WFSInterface : WFSObject {
 		*/
 		pos = val;
 			
-		// remember -- .value returns a representation of the MerkerArea's value
-		// so, I need to get the value, alter and re-set the value
 		markerVals = globalWidgets['locationMarkerArea'].value;
 		markerVals[activeChannel].x = pos;
 		
@@ -530,7 +528,7 @@ WFSInterface : WFSObject {
 		// hard resetting the widgets etc.
 
 		while{channelWidgetValues.size > 0}{
-			this.removeChannel(0);
+			parent.removeChannel(0);
 		};
 
 		defaultGlobalWidgetValues.keysValuesDo{ |key,val|
@@ -539,12 +537,12 @@ WFSInterface : WFSObject {
 
 		defaultChannelWidgetValues.keysValuesDo{ |key,val|
 			channelWidgets[key].value = val;
-		};
-		
-		channelWidgets['channelSequenceMenu'].items = Array();
-		channelWidgets['channelLabel'].string = "Channel 1";
-		globalWidgets['locationMarkerArea'].value = Array();
+		};	
 
+		channelWidgets['channelSequenceMenu'].items = Array();
+		channelWidgets['channelLabel'].value = "Channel 1";
+		globalWidgets['locationMarkerArea'].value = Array();
+	
 		globalWidgets['locationMarkerArea'].enabled = false;
 		channelWidgets.do{ |wid| wid.enabled = false; };
 
@@ -839,6 +837,12 @@ WFSInterface : WFSObject {
 			    .action_({ parent.addChannel; })
 		);
 
+		channelWidgets = channelWidgets.add(
+			'removeChannelButton' -> Button(globalRow, Rect(0, 0, 0, 20))
+			    .states_([["remove channel", Color.red, Color.black]])
+			    .action_({ parent.removeChannel(activeChannel); })
+		);
+
 		// marker area
 
 		globalWidgets = globalWidgets.add(
@@ -936,12 +940,6 @@ WFSInterface : WFSObject {
 			    .action_({ |obj| this.setChannelInvertDelay(obj.value); })
 		);
 		
-		channelWidgets = channelWidgets.add(
-			'removeChannelButton' -> Button(channelRow, Rect(0, 0, 0, 20))
-			    .states_([["remove channel", Color.red, Color.black]])
-			    .action_({ parent.removeChannel(activeChannel); })
-		);
-		
 		// transport row
 		
 		transportRow = VLayoutView(controlViewWindow, Rect(0, 0, columnWidth, winBounds.height))
@@ -973,11 +971,15 @@ WFSInterface : WFSObject {
 			    .recordAction_({ |obj| this.setChannelRecord(obj) });
 			);*/
 
-
+		/*
+			// looks like there is no need for this control right now
+			// as long as there is no adding to the sequence, there is no
+			// need to get rid of what's there. don't play the sequence. 
+			// recording will yield an entirely new sequence
 		channelWidgets = channelWidgets.add(
 			'channelSequenceClearButton' -> Button(transportRow, Rect(0, 0, 0, 20))
 			    .states_([["clear sequence", Color.black, Color.grey]]);
-		);
+			);*/
 		
 		channelWidgets = channelWidgets.add(
 			'channelLoopButton' -> Button(transportRow, Rect(0, 0, 0, 20))
