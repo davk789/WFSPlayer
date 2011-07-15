@@ -17,7 +17,7 @@ WFSMixer {
 	
 	init_wfsmixer { |name,conditions|
 		s = Server.default;
-		
+
 		preferences = WFSPreferences();
 		sequencer = WFSSequencer();
 		engine = WFSEngine();

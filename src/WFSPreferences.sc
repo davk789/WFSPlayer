@@ -75,17 +75,6 @@ WFSPreferences : WFSObject {
 
 	// presets
 
-	readPrefFile { |filename|
-		var doc;
-		doc = DOMDocument(presetRoot ++ filename ++ ".xml");
-
-		doc.getDocumentElement.getElementsByTagName("param").do{ |tag, index|
-			// do something here
-			postln([tag.getAttribute("id"), tag.getText]);
-		};
-		
-	}
-
 	save { |filename|
 		/**
 			Format DOM data and write to an xml file. This might be good to refactor later.
@@ -235,7 +224,7 @@ WFSPreferences : WFSObject {
 
 				outDict = outDict.add(node.getAttribute("id").asSymbol -> val);
 			};
-
+			// why am I calling .add for a dictionary here?? dumb
 			outParams = outParams.add(outDict);
 
 			paramData = paramData.getNextSibling;
@@ -253,6 +242,10 @@ WFSPreferences : WFSObject {
 
 			globalParamData = globalParamData.getNextSibling;
 		};
+
+		// backwards compatibility fix 
+
+		outGlobalParams = this.checkRoomDimensions(outGlobalParams);
 
 		// get sequence data
 
@@ -279,5 +272,18 @@ WFSPreferences : WFSObject {
 		
 		^[outParams, outGlobalParams, outSequences];
 		
+	}
+
+	checkRoomDimensions { |dict|
+		// BACKWARDS COMPATIBILITY FIX
+		// make adjustments to the received data
+		if(dict.includes('arrayWidthBox').not){
+			postln("Old save file detected!!");
+			postf("Updating arrayWidthBox and RoomWidthBox from value: %\n", dict['roomWidthBox'];);
+			dict['arrayWidthBox'] = dict['roomWidthBox'];
+			dict['roomWidthBox'] = dict['roomWidthBox'] + 2;
+		};
+		// the data should possibly be re-saved, but problably not in this function
+		^dict;
 	}
 }
