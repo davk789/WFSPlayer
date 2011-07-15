@@ -289,10 +289,12 @@ WFSPreferences : WFSObject {
 		// BACKWARDS COMPATIBILITY FIX
 		// make adjustments to the received data
 		if(dict.includes('arrayWidthBox').not){
+			postln("Old save file detected!!");
+			postf("Updating arrayWidthBox and RoomWidthBox from value: %\n", dict['roomWidthBox'];);
 			dict['arrayWidthBox'] = dict['roomWidthBox'];
 			dict['roomWidthBox'] = dict['roomWidthBox'] + 2;
 		};
-		// the data should be re-saved, but problably not in this function
+		// the data should possibly be re-saved, but problably not in this function
 		^dict;
 	}
 }
