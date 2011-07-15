@@ -75,17 +75,6 @@ WFSPreferences : WFSObject {
 
 	// presets
 
-	readPrefFile { |filename|
-		var doc;
-		doc = DOMDocument(presetRoot ++ filename ++ ".xml");
-
-		doc.getDocumentElement.getElementsByTagName("param").do{ |tag, index|
-			// do something here
-			postln([tag.getAttribute("id"), tag.getText]);
-		};
-		
-	}
-
 	save { |filename|
 		/**
 			Format DOM data and write to an xml file. This might be good to refactor later.
