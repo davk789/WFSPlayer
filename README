@@ -49,7 +49,6 @@ s.sendMsg('n_free', ~pNode);
 TODO:
 add more control over the sequences (clear, rename, delete sequences, etc.)
 the displayed x y coordinates should reflect the dimensions of the room, rather than unit value
-improve display -- add grid, allow values outside of the "box"
 make the delay time selection handle negative numbers when the spatialization is inverted (and only then)
 
 ... wish list
@@ -61,9 +60,8 @@ add draw paths to the markers that show where the markers go when played (no mor
 
 BUGS:
 ******* from bryan
-clear sequence doesn't work.. << general messiness here -- just generally take a look 
-also, panning amount doesn't save
-values are not initalized from the gui
+
+
 
 
 
