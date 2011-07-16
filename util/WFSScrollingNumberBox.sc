@@ -1,10 +1,40 @@
-WFSNumberBoxSpec {
-	/**
-		a number box with a value scaled 0..1, with a display set to a spec. setting and
-		retrieving values will accept and return unit values only. use a special call
-		to get the mapped display value.
+WFSAbstractGUIWrapper {
+	/*
+		abstract class that passes all unimplemented function calls to prThis, 
+		which is the wrapped gui widget implemented by the subclass. It also 
+		handles edge cases where the generic wrapper implementation fails. 
 	*/
-	var <>prThis;
+	var prThis;
+	*new { |par,bnd|
+		^super.new.init_wfsabstractguiwrapper;
+	}
+
+	init_wfsabstractguiwrapper {
+		postln(this.class.asString ++ " initialized.");
+	}
+
+	doesNotUnderstand { |selector ... args|
+		var result;
+		postf("% %\n", selector, args);
+
+		result = prThis.performList(selector, args);
+		if(selector.isSetter.not){
+			^result;
+		};
+	}
+
+	// methods implemented by Object
+
+	value {
+		^prThis.value;
+	}
+
+}
+
+WFSNumberBoxSpec : WFSAbstractGUIWrapper {
+	/**
+		a number box with a spec applied to the display
+	*/
 	var <>displaySpec;
 	
 	*new { |par,bnd|
@@ -27,22 +57,17 @@ WFSNumberBoxSpec {
 		displaySpec.maxval = rng + displaySpec.minval;
 	}
 
-	// write wrapper functions ....
-	// it would be nice to subclass Object:doesNotUnderstand, but I 
-	// seem to be missing something
-
 	action_ { |act|
 		prThis.action = { |obj|
 			var tmpObj = obj.copy;
-			tmpObj.value = 
+			tmpObj.value = nil;
 		};
 	}
 }
 
-WFSScrollingNumberBox {
+WFSScrollingNumberBox : WFSAbstractGUIWrapper {
 	/* wrap a view redirected number box, rather than subclass. Support Cocoa this way.
 	   */
-	var prThis; // the wrapped number box
 	var lastCoord=0;
 	// WARNING: this class implements the same function for action and mouseMoveAction
 	var subclassAction, subclassMouseUpAction;
@@ -101,10 +126,6 @@ WFSScrollingNumberBox {
 		};
 	}
 
-	valueAction_ { |val|
-		prThis.valueAction = val;
-	}
-
 	checkRange {
 		if(minVal.notNil){
 			if(prThis.value < minVal){ prThis.value = minVal; };
@@ -136,29 +157,4 @@ WFSScrollingNumberBox {
 		
 		lastCoord = loc;
 	}
-	
-	value_ { |val|
-		prThis.value = val;
-	}
-	
-	value {
-		^prThis.value;
-	}
-	
-	background_ { |color|
-		prThis.background = color;
-	}
-	
-	background {
-		^prThis.background;
-	}
-	
-	enabled_ { |choice|
-		prThis.enabled = choice;
-	}
-	
-	enabled {
-		prThis.enabled;
-	}
-
 }
