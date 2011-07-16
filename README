@@ -59,7 +59,7 @@ add vertical placement of audio signals
 add draw paths to the markers that show where the markers go when played (no more info needed)
 
 BUGS:
-******* from bryan
+channel removal breaks after removing channel 1
 
 
 

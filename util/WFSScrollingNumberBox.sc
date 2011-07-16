@@ -1,3 +1,44 @@
+WFSNumberBoxSpec {
+	/**
+		a number box with a value scaled 0..1, with a display set to a spec. setting and
+		retrieving values will accept and return unit values only. use a special call
+		to get the mapped display value.
+	*/
+	var <>prThis;
+	var <>displaySpec;
+	
+	*new { |par,bnd|
+		^super.new.init_wfsscalednumberbox(par, bnd);
+	}
+
+	*test {
+		var win;
+		win = Window("testing " ++ this.class.asString, Rect(200, 200, 400, 100)).front;
+		^super.new.init_wfsscalednumberbox(win, win.view.bounds);
+	}
+
+	init_wfsscalednumberbox { |par, bnd|
+		prThis = NumberBox(par, bnd);
+		displaySpec = [0, 16].asSpec;
+		postln(this.class.asString ++ " initalized");
+	}
+	
+	range_ { |rng|
+		displaySpec.maxval = rng + displaySpec.minval;
+	}
+
+	// write wrapper functions ....
+	// it would be nice to subclass Object:doesNotUnderstand, but I 
+	// seem to be missing something
+
+	action_ { |act|
+		prThis.action = { |obj|
+			var tmpObj = obj.copy;
+			tmpObj.value = 
+		};
+	}
+}
+
 WFSScrollingNumberBox {
 	/* wrap a view redirected number box, rather than subclass. Support Cocoa this way.
 	   */
