@@ -33,9 +33,11 @@ WFSAbstractGUIWrapper {
 
 WFSNumberBoxSpec : WFSAbstractGUIWrapper {
 	/**
-		a number box with a spec applied to the display
+		a number box with a spec applied to the display.
 	*/
-	var <>displaySpec;
+	var <value=0; // unmapped data value of the number box
+	var <action;
+	var <spec;
 	
 	*new { |par,bnd|
 		^super.new.init_wfsscalednumberbox(par, bnd);
@@ -49,20 +51,63 @@ WFSNumberBoxSpec : WFSAbstractGUIWrapper {
 
 	init_wfsscalednumberbox { |par, bnd|
 		prThis = NumberBox(par, bnd);
-		displaySpec = [0, 16].asSpec;
-		postln(this.class.asString ++ " initalized");
-	}
-	
-	range_ { |rng|
-		displaySpec.maxval = rng + displaySpec.minval;
+		spec = [0, 16].asSpec;
+		prThis.value = this.valueToDisplay(value);
+		this.action = {};		
+
+		this.initInputFilter;
 	}
 
-	action_ { |act|
-		prThis.action = { |obj|
-			var tmpObj = obj.copy;
-			tmpObj.value = nil;
+	initInputFilter {
+		// all key up events push the value of the widget
+		// entering non-numeric data resets the value to 0 -- best to 
+		// filter non-numeric input...... later...
+		prThis.keyUpAction = { |obj|
+			if((obj.value < spec.minval) || (obj.value > spec.maxval)){
+				obj.value = this.limitDisplay(obj.value); 
+			};
+			value = this.displayToValue(obj.value);
 		};
 	}
+
+	displayToValue { |disp|
+		^spec.unmap(disp);
+	}
+	
+	valueToDisplay { |val|
+		^spec.map(val);
+	}
+
+	limitDisplay { |disp|
+		^disp.min(spec.maxval).max(spec.minval);
+	}
+	
+	action_ { |act|
+		action = act;
+		prThis.action = { |obj|
+			obj.value = this.limitDisplay(obj.value);
+			value = this.displayToValue(obj.value);
+			action.value(this);			
+		};
+	}
+
+	valueAction_ { |val|
+		// unused: implementing it in case I need valueAction_ later
+		this.value = val;
+		prThis.action.value(prThis);
+		
+	}
+
+	value_ { |val|
+		value = val;
+		prThis.value = this.valueToDisplay(value);
+	}
+
+	spec_ { |newSpec|
+		spec = newSpec;
+		prThis.value = this.valueToDisplay(value);
+	}
+	
 }
 
 WFSScrollingNumberBox : WFSAbstractGUIWrapper {

@@ -609,7 +609,12 @@ WFSInterface : WFSObject {
 	}
 
 	setArrayWidth { |width|
+		var tmpVal;
 		globalWidgetValues['arrayWidthBox'] = width;
+		channelWidgets['channelXPositionBox'].spec = [
+			channelWidgets['channelXPositionBox'].spec.minval, 
+			width
+		].asSpec;
 		this.updateActiveMarkerArea;
 	}
 
@@ -622,6 +627,10 @@ WFSInterface : WFSObject {
 
 	setRoomDepth { |depth|
 		globalWidgetValues['roomDepthBox'] = depth;
+		channelWidgets['channelYPositionBox'].spec = [
+			channelWidgets['channelYPositionBox'].spec.minval, 
+			depth
+		].asSpec;
 		engine.roomDepth = globalWidgetValues['roomDepthBox'];
 		globalWidgets['locationMarkerArea'].depth = depth;
 	}
@@ -889,20 +898,22 @@ WFSInterface : WFSObject {
 		);
 		// implement the marker area first before these
 		StaticText(channelRow, Rect(0, 0, 0, 20))
-		    .string_("x-position (0..1)")
+		    .string_("x-position (ft)")
 		    .stringColor_(Color.white);
 		
 		channelWidgets = channelWidgets.add(
-			'channelXPositionBox' -> NumberBox(channelRow, Rect(0, 0, 0, 20))
+			'channelXPositionBox' -> WFSNumberBoxSpec(channelRow, Rect(0, 0, 0, 20))
+			    .spec_([0, globalWidgets['arrayWidthBox'].value].asSpec)
 			    .value_(0.1)
 			    .action_({ |obj| this.setChannelXPosition(obj.value); });
 		);
 		
 		StaticText(channelRow, Rect(0, 0, 0, 20))
-		    .string_("y-position (0..1)")
+		    .string_("y-position (ft)")
 		    .stringColor_(Color.white);
 		channelWidgets = channelWidgets.add(
-			'channelYPositionBox' -> NumberBox(channelRow, Rect(0, 0, 0, 20))
+			'channelYPositionBox' -> WFSNumberBoxSpec(channelRow, Rect(0, 0, 0, 20))
+			    .spec_([0, globalWidgets['roomDepthBox'].value].asSpec)
 			    .value_(0.1)
 			    .action_({ |obj| this.setChannelYPosition(obj.value) });
 		);
