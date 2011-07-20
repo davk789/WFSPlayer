@@ -15,7 +15,7 @@ WFSAbstractGUIWrapper {
 
 	doesNotUnderstand { |selector ... args|
 		var result;
-		postf("% %\n", selector, args);
+		//postf("% %\n", selector, args);
 
 		result = prThis.performList(selector, args);
 		if(selector.isSetter.not){

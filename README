@@ -48,7 +48,6 @@ s.sendMsg('n_free', ~pNode);
 
 TODO:
 add more control over the sequences (clear, rename, delete sequences, etc.)
-the displayed x y coordinates should reflect the dimensions of the room, rather than unit value
 make the delay time selection handle negative numbers when the spatialization is inverted (and only then)
 
 ... wish list
@@ -59,7 +58,7 @@ add vertical placement of audio signals
 add draw paths to the markers that show where the markers go when played (no more info needed)
 
 BUGS:
-channel removal breaks after removing channel 1
+channel removal breaks after removing channel 1 <-- is this actually an issue?
 
 
 
