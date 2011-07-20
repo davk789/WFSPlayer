@@ -1,7 +1,6 @@
-WFSMarkerArea {
+WFSMarkerArea : WFSAbstractGUIWrapper {
 	/* wrap a view redirected View object, rather than inherit, for cross-platform
 	   compatibility. */
-	var prThis; // the wrapped object
 	var <dimensions, maxWidth, <activeSize=0.9; //  point representation of dimensions in feet
 	var coords, <currentIndex=0, indexCounter=0;
 	var <gridColor, <gridHighlightColor, <gridActiveAreaColor;
@@ -280,22 +279,6 @@ WFSMarkerArea {
 
 	currentValue_ { |val|
 		this.setValueForIndex(currentIndex, val);
-	}
-	
-	enabled_ { |choice|
-		prThis.enabled = choice;
-	}
-	
-	enabled {
-		prThis.enabled;
-	}
-
-	resize {
-		^prThis.resize;
-	}
-
-	resize_ { |choice|
-		prThis.resize = choice;
 	}
 
 	valueToLocation { |val|
