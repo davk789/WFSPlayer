@@ -95,12 +95,14 @@ WFSSequencer : WFSObject {
 		var sequence, startTime;
 		var index=0;
 
+		// break out if there's not data
+		if(sequences[chan][seq][1].size == 0){ ^this; };
+
 		flags[chan]['play'] = true;
 		startTime = sequences[chan][seq][0];
 		sequence = sequences[chan][seq][1];
 
-		startAction.value(parent, chan); // passing the top-level mixer
-		                                 // hopefully that is okay
+		startAction.value(parent, chan);
 
 		clock.sched(0, {
 			var wait;
@@ -135,10 +137,8 @@ WFSSequencer : WFSObject {
 		flags[channel] = Dictionary['play' -> false, 'record' -> false, 'stop' -> true, ];
 	}
 
-	clear { |channel, seq|
-		postln("this is the sequence: ");
-		postln(sequences[seq]);
-		sequences[seq] = nil;// is this is?
+	clear { |chan, seq|
+		sequences[chan][seq][1] = [];
 	}
 
 	loadPreset { |sequence|
