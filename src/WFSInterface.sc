@@ -4,11 +4,11 @@ WFSInterface : WFSObject {
 		with the sequencer.
 	*/
 
-	var activeChannel=0;    // index of the active source channel
+	var activeChannel=0;
 	var channelCounter=0;   // counter value for use with the channel display only
 	// GUI elements
 	var controlViewWindow, initRow, globalRow, channelRow, transportRow, markerAreaContainer;
-	var <globalWidgets, <channelWidgets; // all gui elements are kept in a Dict for easy access
+	var <globalWidgets, <channelWidgets;
 
 	// parameter defaults and storage
 	var defaultChannelWidgetValues, defaultGlobalWidgetValues;
@@ -449,6 +449,12 @@ WFSInterface : WFSObject {
 			postln("stopping the sequencer from the interface.");
 			sequencer.stop(activeChannel);
 		};
+	}
+
+	setChannelSequenceClear {
+		/* just zero out the sequence, rather than attempt anything more meaningful */
+		var seq = this.getParam('channelSequenceMenu');
+		sequencer.clear(activeChannel, seq);
 	}
 	
 	updateSequencerMenu {
@@ -969,15 +975,16 @@ WFSInterface : WFSObject {
 			    .recordAction_({ |obj| this.setChannelRecord(obj) });
 			);*/
 
-		/*
+		
 			// looks like there is no need for this control right now
 			// as long as there is no adding to the sequence, there is no
 			// need to get rid of what's there. don't play the sequence. 
 			// recording will yield an entirely new sequence
 		channelWidgets = channelWidgets.add(
 			'channelSequenceClearButton' -> Button(transportRow, Rect(0, 0, 0, 20))
-			    .states_([["clear sequence", Color.black, Color.grey]]);
-			);*/
+			    .states_([["clear sequence", Color.black, Color.grey]])
+			    .action_({|obj| this.setChannelSequenceClear; });
+			);
 		
 		channelWidgets = channelWidgets.add(
 			'channelLoopButton' -> Button(transportRow, Rect(0, 0, 0, 20))
@@ -1056,4 +1063,4 @@ WFSInterface : WFSObject {
 		
 	}
 
-}
+}  

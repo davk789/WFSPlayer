@@ -135,6 +135,12 @@ WFSSequencer : WFSObject {
 		flags[channel] = Dictionary['play' -> false, 'record' -> false, 'stop' -> true, ];
 	}
 
+	clear { |channel, seq|
+		postln("this is the sequence: ");
+		postln(sequences[seq]);
+		sequences[seq] = nil;// is this is?
+	}
+
 	loadPreset { |sequence|
 		// stop any playing sequences
 		flags.size.do{ |ind|
