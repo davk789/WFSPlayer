@@ -63,23 +63,21 @@ WFSNumberBoxSpec : WFSAbstractGUIWrapper {
 		// entering non-numeric data resets the value to 0 -- best to 
 		// filter non-numeric input...... later...
 		prThis.keyUpAction = { |obj|
-			if((obj.value < spec.minval) || (obj.value > spec.maxval)){
-				obj.value = this.limitDisplay(obj.value); 
-			};
 			value = this.displayToValue(obj.value);
 		};
 	}
 
 	displayToValue { |disp|
-		^spec.unmap(disp);
+		var specVal = disp % spec.maxval;
+		var off = (disp / spec.maxval).trunc;
+		^spec.unmap(specVal) + off
 	}
 	
 	valueToDisplay { |val|
-		^spec.map(val);
-	}
-
-	limitDisplay { |disp|
-		^disp.min(spec.maxval).max(spec.minval);
+		var wrap = val.trunc;
+		var mod = spec.map(val % 1.0);
+		var off = wrap * spec.maxval;
+		^mod + off
 	}
 	
 	action_ { |act|

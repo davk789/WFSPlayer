@@ -203,7 +203,8 @@ WFSMarkerArea : WFSAbstractGUIWrapper {
 	}
 
 	moveMarker { |loc|
-		var coord = this.locationToValue(loc);
+		var bndLoc = loc.x @ loc.y.max(0);
+		var coord = this.locationToValue(bndLoc);
 		coords[currentIndex] = coord;
 		postln(coords);
 		prThis.refresh;
