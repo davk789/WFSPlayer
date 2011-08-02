@@ -17,7 +17,9 @@ WFSPreferences : WFSObject {
 	init_wfspreferences {
 		// maybe move this to a different location later
 		presetRoot = Platform.userAppSupportDir ++  "/Extensions/WFSPlayer/prefs/";
-		
+		if(File.exists(presetRoot).not){
+			unixCmd("mkdir -p \"" ++ presetRoot ++ "\"");
+		};		
 	}
 	
 	// window state
@@ -170,6 +172,7 @@ WFSPreferences : WFSObject {
 		}{
 			outFileName = this.checkFileName(filename);
 		};
+		
 		outFile = File(presetRoot ++ outFileName ++ ".xml", "w+");
 		doc.write(outFile);
 		outFile.close;
