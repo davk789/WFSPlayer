@@ -24,7 +24,7 @@ WFSPreferences : WFSObject {
 	
 	// window state
 
-	storeWindowData { |win|
+	storeWindowData { |cvBounds|
 		/*
 			Right now this only saves window size. This can also be used to 
 			save the state of other data as well. For instance, a file browser
@@ -33,10 +33,10 @@ WFSPreferences : WFSObject {
 			WFSPreferences:storeWindowData gets references to the objects it needs to examine to
 			save their state.
 		*/
-		var file, cvBounds, doc, root, dimTag, dimVal;
+		var file, doc, root, dimTag, dimVal;
 		
 		file = File(presetRoot ++ ".wfsdata", "w+");
-		cvBounds = win.bounds;
+
 		doc = DOMDocument();
 
 		root = doc.createElement("wfsplayer-data");
@@ -45,7 +45,7 @@ WFSPreferences : WFSObject {
 		// window size
 		dimTag = doc.createElement("winsize");
 		dimVal = doc.createTextNode(
-			"Rect(" ++ cvBounds.left ++ ", " ++cvBounds.top ++ ", " ++cvBounds.width ++ ", " ++ cvBounds.height ++ ")"
+		    "Rect(" ++ cvBounds.left ++ ", " ++cvBounds.top ++ ", " ++cvBounds.width ++ ", " ++ cvBounds.height ++ ")"
 		);
 
 		dimTag.appendChild(dimVal);
@@ -58,6 +58,7 @@ WFSPreferences : WFSObject {
 		
 		doc.write(file);
 		file.close;
+		postln("successfully finished writing the window location");
 	}
 
 	retrieveWindowData {
